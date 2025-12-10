@@ -83,7 +83,7 @@ nextflow run nf-core/denovotranscript \
 ```
 
 ```bash
-cd-hit-est -i nf/results/ -o transcripts.cdhit97.fa \
+cd-hit-est -i nf/results/evigene/okayset/all_assembled.okay.mrna -o transcripts.cdhit97.fa \
   -c 0.97 -aS 0.95 -G 0 -g 1 -T 64 -M 0
 
 salmon index -t transcripts.cdhit97.fa -i salmon/idx
@@ -108,47 +108,193 @@ cd-hit-est -i salmon/okay.TPM1.fa -o salmon/2okay.minredund.fa \
   -c 0.97 -aS 0.95 -G 0 -g 1 -T 64 -M 0
 ``` 
 
-### 3.3 Polishing of assembly results using short-read RNA-seq
+### 3.3 RNA scaffolding of Draft Genome results using short-read RNA-seq
 ```bash
+hisat2 -p 48 -x rnaseq/assembly -1 nf/results/cat/pooled_reads_1.merged.fastq.gz \
+ -2 /mnt/12T/lobster_project/RNA/nf/results/cat/pooled_reads_2.merged.fastq.gz -S rnaseq/rna_aln_sam 
+micromamba run -n samtools_env samtools sort -@25 -m 2G -o rnaseq/sort_rna_aln.bam rnaseq/rna_aln_sam
+samtools index rnaseq/sort_rna_aln.bam
+
+# scaffold using Rascaf
+rascaf -b rnaseq/sort_rna_aln.bam -f /mnt/12T/lobster_project/script_new/rnaseq/rn_rascaf_scaffolded.fa -o rnaseq/rascaf_scaffolded.fa 
+rascaf rascaf-join -r /mnt/12T/lobster_project/script_new/rnaseq/rascaf_scaffolded.fa.out -o /mnt/12T/lobster_project/script_new/rnaseq/rascaf_scaffolded
 ```
-### 3.4 Polishing of assembly results using contig RNA-seq
+### 3.4 RNA scaffoldin of Draft Genome results using contig RNA-seq
 ```bash
+micromamba run -n l_rna blat -stepSize=11 -repMatch=2253 -minScore=20 -minIdentity=80 /mnt/12T/lobster_project/script_new/rnaseq/rascaf_scaffolded.fa \
+ /mnt/12T/lobster_project/script_new/salmon/okay.TPM1.fa \
+  ./transcripts2.psl
+
+micromamba run -n l_rna bash /mnt/12T/lobster_project/script_new/L_RNA_scaffolder/L_RNA_scaffolder.sh \
+ -d .  \
+  -j /mnt/12T/lobster_project/script_new/rnaseq3/rn_rascaf_scaffolded.fa \
+  -i /mnt/12T/lobster_project/script_new/L_RNA_scaffolder/transcripts2.noheader.psl \
+  -o /mnt/12T/lobster_project/script_new/scaffolded_genome3
 ```
-### 3.5 Polishing of assembly results using short-read DNA-seq
+### 3.5 Polishing of Draft Genome results using short-read DNA-seq
 ```bash
+run-ntedit polish --draft /mnt/12T/lobster_project/script_new/scaffolded_genome/L_RNA_scaffolder.fasta --reads  /mnt/12T/lobster_project/data/merge/merge_M4 -k 31 \
+-t 64  -f --solid
+
+run-ntedit polish --draft /mnt/12T/lobster_project/script_new/nt/rename.ntedit_k31_edited.fa --read  /mnt/12T/lobster_project/data/merge/merge_M4 -k 41 \
+-t 64  -f
+
+run-ntedit polish --draft /mnt/12T/lobster_project/script_new/nt2/ntedit_k41_edited.fa --reads  /mnt/12T/lobster_project/data/merge/merge_M4 -k 25 \
+-t 64  -f 
+seqkit seq -m 2000 input.fasta > filtered_output.fasta
 ```
 ## 4.Gene structure prediction
 ### 4.1 Gene structure prediction using AUGUSTUS (v3.2.3)
 ```bash
+# 1. Build HISAT2 index
+seqkit seq -m 2000 scaffolded_genome3/assembly.fa > scaffolded_genome3/assembly.2kb.masked.fa
+
+hisat2-build \
+  /mnt/12T/lobster_project/script_new/scaffolded_genome3/assembly.2kb.masked.fa \
+  lobster_index
+
+# 2. Align RNA-seq reads
+micromamba run -n hisat2 hisat2 -p 48 -x lobster_index \
+  -1 /mnt/12T/lobster_project/RNA/nf/results/cat/pooled_reads_1.merged.fastq.gz \
+  -2 /mnt/12T/lobster_project/RNA/nf/results/cat/pooled_reads_2.merged.fastq.gz | \
+samtools sort -@10 -m 3G -o rna_alignments.bam
+samtools index rna_alignments.bam
+
+# 3. Run BRAKER with masked genome + RNA evidence
+export GENEMARK_PATH=/mnt/12T/lobster_project/script_new/annotate/augustus/GeneMark-ETP/bin/gmes
+export BAMTOOLS_PATH=/home/huyha/micromamba/envs/augustus/bin
+
+ braker.pl \
+  --genome=/mnt/12T/lobster_project/script_new/scaffolded_genome3/assembly.2kb.masked.fa  \
+  --bam=rna_alignments.bam \
+  --cores 84 \
+  --species=slipper_lobster \
+  --gff3 
 ```
 ### 4.2 Gene structure prediction using PASA (v3.2.3)
 ```bash
+singularity exec \
+  -B /mnt/12T \
+  pasapipeline_latest.sif \
+  /usr/local/src/PASApipeline/Launch_PASA_pipeline.pl \
+  -c alignAssembly.config \
+  -C -R \
+  -g /mnt/12T/lobster_project/script_new/scaffolded_genome3/assembly.2kb.masked.fa \
+  -t /mnt/12T/lobster_project/script_new/transcriptome_annotate/okay.TPM1.fa.clean \
+  -T -u /mnt/12T/lobster_project/script_new/transcriptome_annotate/okay.TPM1.fa \
+  --TDN tdn.accs \
+  --ALIGNERS gmap,blat \
+  --CPU 48
 ```
 ### 4.3 Gene structure prediction using EVM (v3.2.3)
 ```bash
+EVidenceModeler \
+  --sample_id lobster4 \
+  --genome assembly.2kb.masked.fa \
+  --weights evm_weights.txt \
+  --gene_predictions augustus.gff3 \
+  --transcript_alignments sql.pasa.lite.pasa_assemblies.gff3 \
+  --min_intron_length 20 \
+  --segmentSize 1000000 \
+  --overlapSize 10000 \
+  --CPU 48
+
 ```
 ### 4.4 Gene structure prediction using PASA-update (v3.2.3)
 ```bash
+export PASAHOME=/home/huyha/micromamba/envs/pasa_env/opt/pasa-2.5.3
+
+singularity exec \
+  -B /mnt/12T \
+  pasapipeline_latest.sif \
+  /usr/local/src/PASApipeline/Launch_PASA_pipeline.pl \
+    -c alignAssembly.config \
+    -A \
+    -g /mnt/12T/lobster_project/script_new/scaffolded_genome3/assembly.2kb.masked.fa  \
+    -t /mnt/12T/lobster_project/script_new/transcriptome_annotate/okay.TPM1.fa.clean \
+    -L \
+    --annots /mnt/12T/lobster_project/script_new/evidenModuler/lobster3.EVM.gff3 \
+    --CPU 48
+
 ```
 
 ## 5. Functional annotation
-## 5.1 8.1 Diamond Blast (v0.88.2) the whole NCBI NR database (Release 2021_9_29)
+## 5.1 Diamond Blast (v0.88.2) the whole NCBI NR database (Release 2021_9_29)
 ```bash
+diamond blastp \
+  --query /mnt/10T2/huyha/anno/lobster_pasa_updated.proteins.no_stop.fasta \
+  --db /mnt/10T2/huyha/db/nr.dmnd \
+  --out nr.tsv \
+  --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle \
+  --evalue 1e-5 \
+  --max-target-seqs 1 \
+  --threads 32
 ```
-## 5.1 8.1 Diamond Blast (v0.88.2) the SWISS-PROT database (Release 2022_01)
+## 5.1 Diamond Blast (v0.88.2) the SWISS-PROT database (Release 2022_01)
 ```bash
+diamond blastp \
+  --query /mnt/10T2/huyha/anno/gff/lobster_pasa_updated.proteins.fasta  \
+  --db /mnt/10T2/huyha/db/uniprot/uniprot_sprot.dmnd \
+  --out swisprot.out \
+  --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore stitle \
+  --evalue 1e-5 \
+  --max-target-seqs 1 \
+  --threads 32
 ```
-## 5.1 8.1 Protein domain annotation by interproscan (v5.52-86.0) and pfam_scan.pl
+## 5.1 Protein domain annotation by interproscan (v5.52-86.0) and pfam_scan.pl
 ```bash
+interpro/interproscan-5.75-106.0/interproscan.sh \
+  -i /mnt/12T/lobster_project/script_new/transcriptome_annotate/lobster_pasa_updated.proteins.no_stop.fasta \
+  -cpu 64 \
+  -goterms \
+  -iprlookup \
+  -pa
+```
+## 5.4 Protein domain annotation by interproscan (v5.52-86.0) and pfam_scan.pl
+```bash
+emapper.py \
+  -i /mnt/10T2/huyha/anno/gff/lobster_pasa_updated.proteins.fasta \
+  --output /mnt/10T2/huyha/anno/agat_final/emmpper.out \
+  -m diamond \
+  --cpu 32 \
+  --data_dir /mnt/10T2/huyha/db/eggnog_db
 ```
 ## Genome assessment
 ## 6. Noncoding RNAs prediction
 
 ### 6.1 tRNA annotation using tRNAscan-SE (v1.4)
+```bash
+
+```
 ### 6.2 rRNA, miRNA and snRNA annotation using INFERNAL (v1.0) form Rfam (14.5)
+```bash
+cmsearch --cpu 24  --rfam --tblout genome.rfam.tbl \
+  /mnt/12T/lobster_project/script_new/rna/db/Rfam.cm \
+  /mnt/12T/lobster_project/script_new/scaffolded_genome3/rn_L_RNA_scaffolder.fasta > genome.fa.rfam
+```
 ### 6.1 sncRNA annotation using tRNAscan-SE (v1.4)
 
+```bash
+> 18S_ref.fasta
+while read r; do
+efetch -db nucleotide -id $r -format fasta >> 18S_ref.fasta
+done < /mnt/12T/lobster_project/script_new/rna/snoscan/id.18s
+> 28S_ref.fasta
+while read n; do
+efetch -db nucleotide -id $n -format fasta >> 28S_ref.fasta
+done < /mnt/12T/lobster_project/script_new/rna/snoscan/id.28s
+> ref_rRNA.fasta
+cat 18S_ref.fasta 28S_ref.fasta > ref_rRNA.fasta
+python3 make_snoscan_targets.py ref_rRNA.fasta targets.meth
+seqkit split2 genome_wrapped.fasta -p 20 -O genome_parts
 
+ls genome_parts/*.fasta | xargs -n 1 -P 20 -I {} sh -c 'snoscan -s ref_rRNA.fasta -m targets.meth "{}" > "{}.out"'
+
+# 3. Merge results
+cat genome_parts/*.out > snoscan_final.out
+
+
+```
 ## 7. Finding candidate sex-specific and positive control marker
 https://github.com/fengtong-bio/ssp2
 
@@ -156,16 +302,362 @@ https://github.com/fengtong-bio/ssp2
 ```
 ### 7.1 Step one: K-mer dataset preparation
 ```bash
+#!/bin/bash
+# Exit immediately if any command fails
+set -e 
+
+# --- Configuration ---
+BASE_DIR="/mnt/10T/lobster_project"
+KMC_DIR="$BASE_DIR/kmer/kmer_c"
+TMP_DIR="$KMC_DIR/tmp"
+SCRIPT_DIR="$BASE_DIR/script_project"
+FINAL_OUT_DIR="$BASE_DIR/kmer"
+
+# Create directories
+mkdir -p "$TMP_DIR"
+mkdir -p "$FINAL_OUT_DIR"
+
+# Define k-mer sizes
+kmer_sizes=(21 33 55)
+
+# --- 1. K-mer Counting ---
+echo "Starting KMC counting..."
+
+run_kmc() {
+    input_dir=$1
+    prefix=$2
+    
+    # Check if directory exists
+    if [ ! -d "$input_dir" ]; then
+        echo "Error: Directory $input_dir does not exist."
+        return
+    fi
+
+    # Filter only FASTQ files (gz or uncompressed) to avoid reading junk files
+    find "$input_dir" -maxdepth 1 -name "*.fq.gz" -o -name "*.fastq.gz" -o -name "*.fq" -o -name "*.fastq" | while read i; do
+        o=$(basename "$i")
+        # Cleanup filename
+        o=${o/merge_/}
+        o=${o/trim./}
+        o=${o/.fq.gz/}
+        o=${o/.fastq.gz/}
+
+        for k in "${kmer_sizes[@]}"; do
+            output_db="$KMC_DIR/kmc.$prefix$o.k$k"
+            
+            # Skip if already exists to save time (Optional)
+            if [ ! -d "$output_db" ]; then
+                echo "Processing $o with k=$k..."
+                kmc -k"$k" -t32 -m80 -ci2 "$i" "$output_db" "$TMP_DIR"
+            else
+                echo "Skipping $o (k=$k), output already exists."
+            fi
+        done
+    done
+}
+
+# Run KMC
+run_kmc "$BASE_DIR/data/merge" ""
+run_kmc "$BASE_DIR/DarT-seq_data/trim" "dart."
+
+
+# --- 2. Merging K-mers ---
+# STOP: Ensure your .operate files inside $SCRIPT_DIR point to the correct files generated above!
+echo "Merging k-mers..."
+
+# You might need to generate these operation files dynamically if filenames vary.
+# Assuming your manually created files are correct:
+kmc_tools complex "$SCRIPT_DIR/33.kmer_operate.F"
+kmc_tools complex "$SCRIPT_DIR/33.kmer_operate.M"
+kmc_tools complex "$SCRIPT_DIR/55.kmer_operate.F"
+kmc_tools complex "$SCRIPT_DIR/55.kmer_operate.M"
+
+
+# --- 3. Extract Unique K-mers (Subtraction) ---
+echo "Extracting unique k-mers..."
+
+# Function to subtract, dump, and convert to FASTA
+process_unique() {
+    local k=$1
+    local set1=$2 # Target (e.g., F)
+    local set2=$3 # Subtract (e.g., M)
+    
+    local in_db1="$KMC_DIR/${set1}.merged_kmc.k$k"
+    local in_db2="$KMC_DIR/${set2}.merged_kmc.k$k"
+    local uniq_db="$KMC_DIR/uniq_${set1}_kmc.k$k"
+    local dump_txt="$KMC_DIR/3.uniq_${set1}_kmc.k$k.txt"
+    local out_fasta="$FINAL_OUT_DIR/k$k.${set1}.merged_kmers.fasta"
+
+    # Subtract
+    kmc_tools simple "$in_db1" "$in_db2" kmers_subtract "$uniq_db" -ci3
+    
+    # Transform to text
+    kmc_tools transform "$uniq_db" dump "$dump_txt" -ci3
 ```
 
 ### 6.2 Step two: Sex-specific k-mers and reads extraction.
 ```bash
+# 1. Setup Directories
+# Added -p to prevent error if directory exists
+mkdir -p /mnt/10T/lobster_project/kmer/DarT_seq_clean_read
+mkdir -p /mnt/10T/lobster_project/kmer/clean_read/QC
+
+# ==========================================
+# WGS Section (Commented - Fixed Logic to F->F and M->M)
+# ==========================================
+# If you run this later, map Female reads to Female Kmers to EXTRACT them.
+#
+# for i in /mnt/10T/lobster_project/kmer/clean_read/k33.clean_clean_merge_F*_R1.fastq.gz; do
+#     # ... (logic to get R2) ...
+#     # bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta ...
+# done
+
+# ==========================================
+# DarT-seq Section
+# ==========================================
+
+# --- Female Loop ---
+# Matches Female Reads against Female Unique K-mers
+echo "Starting Female DArT filtering..."
+for i in /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.clean_trim.Female*.fq.gz; do
+    c=$(basename "$i")
+    echo "Processing $c..."
+    
+    # Check if output already exists to skip (removed the complex || logic for clarity)
+    if [ ! -s "/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" ]; then
+        bbduk.sh in="$i" \
+                 ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta \
+                 outm="/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" \
+                 k=31 hdist=0 \
+                 stats="$c.k55.stats.txt" \
+                 minlength=50 \
+                 threads=8 \
+                 -Xmx75g usejni=f \
+                 overwrite=t \
+                 &> "log.k55.F.$c.bbduk.txt"
+    fi
+done
+
+# --- Male Loop ---
+# Matches Male Reads against Male Unique K-mers
+echo "Starting Male DArT filtering..."
+for i in /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.clean_trim.Male*.fq.gz; do
+    c=$(basename "$i")
+    echo "Processing $c..."
+
+    if [ ! -s "/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" ]; then
+        bbduk.sh in="$i" \
+                 ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta \
+                 outm="/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" \
+                 k=31 hdist=0 \
+                 stats="$c.k55.stats.txt" \
+                 minlength=50 \
+                 threads=8 \
+                 -Xmx75g usejni=f \
+                 overwrite=t \
+                 &> "log.k55.M.$c.bbduk.txt"
+    fi
+done
 ```
 
 ### 7.3 Step three: De novo assembly of sex-specific reads.
 ```bash
+mkdir -p /mnt/10T/lobster_project/kmer/megahit_output/
+
+# assembly FeMale
+megahit \
+    -1 /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_F.R1.fastq.gz \
+    -2 /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_F.R2.fastq.gz \
+    --k-min 27 --k-max 141 --k-step 20 \
+    --min-contig-len 300 \
+    --num-cpu-threads 40 \
+    --memory 0.95 --mem-flag 0 \
+    --continue \
+    -o /mnt/10T/lobster_project/kmer/megahit_output/F 2> /mnt/10T/lobster_project/kmer/megahit_output/F.error 
+
+exit
+
+# assembly Male
+megahit \
+    -1 /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_M.R1.fastq.gz \
+    -2 /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_M.R2.fastq.gz \
+    --k-min 27 --k-max 141 --k-step 20 \
+    --min-contig-len 300 \
+    --num-cpu-threads 40\ \
+    --memory 0.95 \
+    --continue \
+    -o /mnt/10T/lobster_project/kmer/megahit_output/M 2> /mnt/10T/lobster_project/kmer/megahit_output/M.error
 ```
 
 ### 7.4 Step four: Check against the candidates.
 ```bash
+#!/bin/bash
+#SBATCH --job-name=map_depth
+#SBATCH --cpus-per-task=40
+#SBATCH --mem=120G
+
+# Exit on error
+set -e 
+
+# --- CONFIGURATION ---
+REF_FEMALE="/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta"
+REF_MALE="/mnt/10T/lobster_project/kmer/megahit_output/F/MALE_ref.fasta"
+OUT_WGS="/mnt/10T/lobster_project/kmer/bwa_result/WGS"
+OUT_DART="/mnt/10T/lobster_project/kmer/bwa_result/dart-seq"
+
+mkdir -p "$OUT_WGS" "$OUT_DART"
+
+# Index Reference (Only needs to be done once)
+if [ ! -f "${REF_FEMALE}.bwt" ]; then
+    echo "Indexing Female Reference..."
+    bwa index "$REF_FEMALE"
+fi
+
+# ====================================================
+# STEP 1-3: WGS MAPPING (Mapping to FEMALE Ref)
+# ====================================================
+echo "Step 1: Processing WGS Reads..."
+
+# Function to Map, Sort, and Index in one pipe (Saves disk space and time)
+# We use a loop instead of listing files manually to ensure we catch everything
+for r1 in /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_*_R1.fastq.gz; do
+    
+    # Extract Sample Name (e.g., M3, F1)
+    b=$(basename "$r1" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
+    r2="${r1/_R1.fastq.gz/_R2.fastq.gz}"
+    
+    output_bam="$OUT_WGS/sort.$b.F.bam"
+
+    if [ ! -f "$output_bam" ]; then
+        echo "Mapping $b..."
+        # BWA MEM -> Samtools View -> Samtools Sort (One Pipeline)
+        bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "$REF_FEMALE" "$r1" "$r2" | \
+        samtools view -uS - | \
+        samtools sort -@ 40 - -o "$output_bam"
+        
+        samtools index "$output_bam"
+    else
+        echo "Skipping $b (Output exists)"
+    fi
+done
+
+# ====================================================
+# STEP 4-6: DArT-seq MAPPING (Mapping to FEMALE Ref)
+# ====================================================
+echo "Step 4: Processing DArT-seq Reads..."
+
+for r_dart in /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz; do
+    
+    b=$(basename "$r_dart" | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
+    output_bam="$OUT_DART/sort.$b.F.bam"
+
+    if [ ! -f "$output_bam" ]; then
+        echo "Mapping $b..."
+        bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "$REF_FEMALE" "$r_dart" | \
+        samtools view -uS - | \
+        samtools sort -@ 40 - -o "$output_bam"
+        
+        samtools index "$output_bam"
+    fi
+done
+
+# ====================================================
+# STEP 7: DEPTH CALCULATION
+# ====================================================
+echo "Step 7: Calculating Depth..."
+
+# CRITICAL NOTE: The Perl script in Step 8 usually relies on specific column orders.
+# If column order matters (e.g., F1 must be Col 3), DO NOT use wildcards (*).
+# Keep your manual list if the Perl script is sensitive to order.
+
+# I have preserved your manual list for safety, but added checks to ensure files exist.
+FILES=(
+    "$OUT_WGS/sort.F1.F.bam"
+    "$OUT_WGS/sort.F2.F.bam"
+    "$OUT_WGS/sort.F3.F.bam"
+    "$OUT_DART/sort.Female_01_1.F.bam"
+    "$OUT_DART/sort.Female_01_2.F.bam"
+    "$OUT_DART/sort.Female_02_1.F.bam"
+    "$OUT_DART/sort.Female_02_2.F.bam"
+    "$OUT_DART/sort.Female_03_1.F.bam"
+    "$OUT_DART/sort.Female_03_2.F.bam"
+    "$OUT_DART/sort.Female_04_1.F.bam"
+    "$OUT_DART/sort.Female_04_2.F.bam"
+    "$OUT_DART/sort.Female_05_1.F.bam"
+    "$OUT_DART/sort.Female_05_2.F.bam"
+    "$OUT_DART/sort.Female_06_1.F.bam"
+    "$OUT_DART/sort.Female_06_2.F.bam"
+    "$OUT_DART/sort.Female_07_1.F.bam"
+    "$OUT_DART/sort.Female_07_2.F.bam"
+    "$OUT_DART/sort.Female_08_1.F.bam"
+    "$OUT_DART/sort.Female_08_2.F.bam"
+    "$OUT_DART/sort.Female_09_1.F.bam"
+    "$OUT_DART/sort.Female_09_2.F.bam"
+    "$OUT_DART/sort.Female_10.F.bam"
+    "$OUT_DART/sort.Female_11.F.bam"
+    "$OUT_DART/sort.Female_12.F.bam"
+    "$OUT_DART/sort.Female_15.F.bam"
+    "$OUT_WGS/sort.M1.F.bam"
+    "$OUT_WGS/sort.M2.F.bam"
+    "$OUT_WGS/sort.M3.F.bam"
+    "$OUT_DART/sort.Male_01.F.bam"
+    "$OUT_DART/sort.Male_02.F.bam"
+    "$OUT_DART/sort.Male_03.F.bam"
+    "$OUT_DART/sort.Male_04.F.bam"
+    "$OUT_DART/sort.Male_05.F.bam"
+    "$OUT_DART/sort.Male_06.F.bam"
+    "$OUT_DART/sort.Male_07.F.bam"
+    "$OUT_DART/sort.Male_08.F.bam"
+    "$OUT_DART/sort.Male_09.F.bam"
+    "$OUT_DART/sort.Male_10.F.bam"
+    "$OUT_DART/sort.Male_11.F.bam"
+    "$OUT_DART/sort.Male_12.F.bam"
+    "$OUT_DART/sort.Male_14.F.bam"
+    "$OUT_DART/sort.Male_15_1.F.bam"
+    "$OUT_DART/sort.Male_15_2.F.bam"
+)
+
+# Verify all files exist before running depth
+for f in "${FILES[@]}"; do
+    if [ ! -f "$f" ]; then
+        echo "ERROR: Missing expected BAM file: $f"
+        exit 1
+    fi
+done
+
+# Run Depth
+samtools depth -m 100000 -aa "${FILES[@]}" > "/mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth"
+
+
+# ====================================================
+# STEP 8: PERL ANALYSIS & BUSCO
+# ====================================================
+echo "Step 8: Running Analysis..."
+
+MALE_DEPTH_FILE="/mnt/10T/lobster_project/kmer/bwa_result/MALE.depth"
+
+# Check if MALE.depth exists (Required for your Perl script)
+if [ ! -f "$MALE_DEPTH_FILE" ]; then
+    echo "WARNING: $MALE_DEPTH_FILE does not exist!"
+    echo "You must repeat Steps 1-7 using the MALE reference genome to create it."
+    echo "The Perl script below will likely fail or output incorrect data."
+fi
+
+perl ssp2/step2.pl \
+    "$REF_FEMALE" \
+    "$REF_MALE" \
+    25 18 \
+    "/mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth" \
+    "$MALE_DEPTH_FILE" \
+    0.9 20 100
+
+#Finding positive control 
+awk \
+-v G1_NUM=25 \
+-v G2_NUM=18 \
+-v GAP_LENGTH=10 \
+-v MIN_LENGTH=10 \
+-f /mnt/12T/lobster_project/PS_region/script.awk \
+/mnt/12T/lobster_project/kmer/bwa_result/FEMALE.depth 
+
 ```
