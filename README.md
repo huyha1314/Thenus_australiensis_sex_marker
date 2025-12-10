@@ -408,67 +408,57 @@ process_unique() {
 
 ### 6.2 Step two: Sex-specific k-mers and reads extraction.
 ```bash
-# 1. Setup Directories
-# Added -p to prevent error if directory exists
-mkdir -p  kmer/DarT_seq_clean_read
-mkdir -p  kmer/clean_read/QC
+#WGS
+mkdir -p /mnt/10T/lobster_project/kmer/clean_read
+mkdir -p /mnt/10T/lobster_project/kmer/clean_read/QC
 
-# ==========================================
-# WGS Section (Commented - Fixed Logic to F->F and M->M)
-# ==========================================
-# If you run this later, map Female reads to Female Kmers to EXTRACT them.
-#
-# for i in  kmer/clean_read/k33.clean_clean_merge_F*_R1.fastq.gz; do
-#     # ... (logic to get R2) ...
-#     # bbduk.sh in1=$i in2=$a ref= kmer/k55.F.merged_kmers.fasta ...
-# done
-
-# ==========================================
-# DarT-seq Section
-# ==========================================
-
-# --- Female Loop ---
-# Matches Female Reads against Female Unique K-mers
-echo "Starting Female DArT filtering..."
-for i in  kmer/DarT_seq_clean_read/k33.clean_trim.Female*.fq.gz; do
-    c=$(basename "$i")
-    echo "Processing $c..."
-    
-    # Check if output already exists to skip (removed the complex || logic for clarity)
-    if [ ! -s " kmer/DarT_seq_clean_read/k55_$c" ]; then
-        bbduk.sh in="$i" \
-                 ref= kmer/k55.F.merged_kmers.fasta \
-                 outm=" kmer/DarT_seq_clean_read/k55_$c" \
-                 k=31 hdist=0 \
-                 stats="$c.k55.stats.txt" \
-                 minlength=50 \
-                 threads=8 \
-                 -Xmx75g usejni=f \
-                 overwrite=t \
-                 &> "log.k55.F.$c.bbduk.txt"
-    fi
+for i in `ls /mnt/10T/lobster_project/kmer/clean_read/k33.clean_clean_merge_F*_R1.fastq.gz`;do
+a=`echo $i | sed -e  's/R1/R2/'`
+b=`basename ${a}`
+c=`basename ${i}`
+bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta -Xmx90g  usejni=t \
+         outm1=/mnt/10T/lobster_project/kmer/clean_read/k55_$c outm2=/mnt/10T/lobster_project/kmer/clean_read/k55_$b k=21 hdist=0 \
+         stats=$b.stats.txt minlength=50 &>  k55.M.$c.bbduck.log
 done
 
-# --- Male Loop ---
-# Matches Male Reads against Male Unique K-mers
-echo "Starting Male DArT filtering..."
-for i in  kmer/DarT_seq_clean_read/k33.clean_trim.Male*.fq.gz; do
-    c=$(basename "$i")
-    echo "Processing $c..."
-
-    if [ ! -s " kmer/DarT_seq_clean_read/k55_$c" ]; then
-        bbduk.sh in="$i" \
-                 ref= kmer/k55.M.merged_kmers.fasta \
-                 outm=" kmer/DarT_seq_clean_read/k55_$c" \
-                 k=31 hdist=0 \
-                 stats="$c.k55.stats.txt" \
-                 minlength=50 \
-                 threads=8 \
-                 -Xmx75g usejni=f \
-                 overwrite=t \
-                 &> "log.k55.M.$c.bbduk.txt"
-    fi
+for i in `ls /mnt/10T/lobster_project/kmer/clean_read/k33.clean_clean_merge_M*_R1.fastq.gz`;do
+a=`echo $i | sed -e  's/R1/R2/'`
+b=`basename ${a}`
+c=`basename ${i}`
+bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta -Xmx90g  usejni=t\
+         outm1=/mnt/10T/lobster_project/kmer/clean_read/k55_$c outm2=/mnt/10T/lobster_project/kmer/clean_read/k55_$b k=21 hdist=0 \
+         stats=$b.stats.txt minlength=50 &>  k55.F.$c.bbduck.log
 done
+
+# DarT-seq
+mkdir /mnt/10T/lobster_project/kmer/DarT_seq_clean_read
+rm -f bbduk.F.txt 
+for i in /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.clean_trim.Female*.fq.gz; do
+    c=$(basename "$i")  
+    echo $i
+    [[ -s "/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" ]] || \
+    bbduk.sh in="$i" ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta -Xmx75g usejni=f \
+             outm=/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_"$c" \
+             k=21 hdist=0 stats="$c.k55.stats.txt" minlength=50 threads=8 &> k55.M."$c".bbduk.log >> bbduk.F.txt
+done
+
+
+rm -f bbduk.M.txt 
+for i in  /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.clean_trim.Male*.fq.gz; do
+    c=`basename ${i}`   
+    echo $i
+    [[ -s "/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" ]] || \
+    bbduk.sh in=$i ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta -Xmx75g usejni=f \
+             outm=/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_"$c" \
+             k=21 hdist=0 stats=$c.k55.stats.txt minlength=50 threads=8  &> k55.M.$c.bbduck.log >> bbduk.M.txt
+done
+
+
+parallel -j 2 "pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F*_{}.fastq.gz| pigz -p 8 > /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_F.{}.fastq.gz
+" ::: R1 R2 
+parallel -j 2 "pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M*_{}.fastq.gz| pigz -p 8 > /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_M.{}.fastq.gz
+" ::: R1 R2 
+
 ```
 
 ### 7.3 Step three: De novo assembly of sex-specific reads.
