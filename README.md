@@ -311,8 +311,6 @@ cat genome_parts/*.out > snoscan_final.out
 ## 7. Finding candidate sex-specific and positive control marker
 https://github.com/fengtong-bio/ssp2
 
-```bash
-```
 ### 7.1 Step one: K-mer dataset preparation
 ```bash
 #!/bin/bash
@@ -504,11 +502,6 @@ megahit \
 
 ### 7.4 Step four: Check against the candidates.
 ```bash
-#!/bin/bash
-#SBATCH --job-name=map_depth
-#SBATCH --cpus-per-task=40
-#SBATCH --mem=120G
-
 # Exit on error
 set -e 
 
