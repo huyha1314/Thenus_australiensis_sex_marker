@@ -502,160 +502,117 @@ megahit \
 
 ### 7.4 Step four: Check against the candidates.
 ```bash
-# Exit on error
-set -e 
 
-# --- CONFIGURATION ---
-REF_FEMALE=" kmer/megahit_output/F/FEMALE_ref.fasta"
-REF_MALE=" kmer/megahit_output/F/MALE_ref.fasta"
-OUT_WGS=" kmer/bwa_result/WGS"
-OUT_DART=" kmer/bwa_result/dart-seq"
+# Rename and index reference genome
+mv /mnt/10T/lobster_project/kmer/megahit_output/F/final.contigs.fa /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta
+bwa index /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta
 
-mkdir -p "$OUT_WGS" "$OUT_DART"
+echo Step1
+maping
+parallel -j 3 '
+    i={}
+    a=$(echo "$i" | sed "s/_R1.fastq.gz/_R2.fastq.gz/")
+    b=$(basename "$i" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
+    bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta" "$i" "$a" | \
+    samtools view -bS ->  "/mnt/10T/lobster_project/kmer/bwa_result/WGS/$b.F.bam"
+' :::  /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F3_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M1_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M2_R1.fastq.gz
 
-# Index Reference (Only needs to be done once)
-if [ ! -f "${REF_FEMALE}.bwt" ]; then
-    echo "Indexing Female Reference..."
-    bwa index "$REF_FEMALE"
-fi
 
-# ====================================================
-# STEP 1-3: WGS MAPPING (Mapping to FEMALE Ref)
-# ====================================================
-echo "Step 1: Processing WGS Reads..."
 
-# Function to Map, Sort, and Index in one pipe (Saves disk space and time)
-# We use a loop instead of listing files manually to ensure we catch everything
-for r1 in  kmer/clean_read/k55_k33.clean_clean_merge_*_R1.fastq.gz; do
+
+echo Step2
+parallel -j 3 '
+    i={}
+    b=$(basename "$i" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
+    samtools sort -@ 27 "/mnt/10T/lobster_project/kmer/bwa_result/WGS/$b.F.bam" -o "/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.${b}.F.bam"
+' ::: /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F3_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M1_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M2_R1.fastq.gz
+
+
+echo Step3
+#index.sort
+parallel -j 6 '
+    i={}
+    a=$(echo "$i" | sed "s/_R1.fastq.gz/_R2.fastq.gz/")
+    b=$(basename "$i" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
+
+    samtools index "/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.${b}.F.bam"
+' ::: /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F3_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M1_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M2_R1.fastq.gz
+
+
+
+echo Step4
+#maping
+parallel -j 4 '
+    b=$(basename {} | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
+    bwa mem -t 20 -M -T 50 -B 5 -O 10 -E 3 -Y "/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta" {} | \
+    samtools view -bS -> "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/${b}.F.bam"
     
-    # Extract Sample Name (e.g., M3, F1)
-    b=$(basename "$r1" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
-    r2="${r1/_R1.fastq.gz/_R2.fastq.gz}"
+' ::: /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz
+echo Step5
+#sort
+parallel -j 4 '
+    b=$(basename {} | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
+    samtools sort -@ 20 "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/${b}.F.bam" -o "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.${b}.F.bam"
     
-    output_bam="$OUT_WGS/sort.$b.F.bam"
+' ::: /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz
+echo Step6
+#index.sort
+parallel -j 8 '
+    b=$(basename {} | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
+    samtools index "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.${b}.F.bam"
+' ::: /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz
 
-    if [ ! -f "$output_bam" ]; then
-        echo "Mapping $b..."
-        # BWA MEM -> Samtools View -> Samtools Sort (One Pipeline)
-        bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "$REF_FEMALE" "$r1" "$r2" | \
-        samtools view -uS - | \
-        samtools sort -@ 40 - -o "$output_bam"
-        
-        samtools index "$output_bam"
-    else
-        echo "Skipping $b (Output exists)"
-    fi
-done
-
-# ====================================================
-# STEP 4-6: DArT-seq MAPPING (Mapping to FEMALE Ref)
-# ====================================================
-echo "Step 4: Processing DArT-seq Reads..."
-
-for r_dart in  kmer/DarT_seq_clean_read/k33.*.fq.gz; do
-    
-    b=$(basename "$r_dart" | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
-    output_bam="$OUT_DART/sort.$b.F.bam"
-
-    if [ ! -f "$output_bam" ]; then
-        echo "Mapping $b..."
-        bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "$REF_FEMALE" "$r_dart" | \
-        samtools view -uS - | \
-        samtools sort -@ 40 - -o "$output_bam"
-        
-        samtools index "$output_bam"
-    fi
-done
-
-# ====================================================
-# STEP 7: DEPTH CALCULATION
-# ====================================================
-echo "Step 7: Calculating Depth..."
-
-# CRITICAL NOTE: The Perl script in Step 8 usually relies on specific column orders.
-# If column order matters (e.g., F1 must be Col 3), DO NOT use wildcards (*).
-# Keep your manual list if the Perl script is sensitive to order.
-
-# I have preserved your manual list for safety, but added checks to ensure files exist.
-FILES=(
-    "$OUT_WGS/sort.F1.F.bam"
-    "$OUT_WGS/sort.F2.F.bam"
-    "$OUT_WGS/sort.F3.F.bam"
-    "$OUT_DART/sort.Female_01_1.F.bam"
-    "$OUT_DART/sort.Female_01_2.F.bam"
-    "$OUT_DART/sort.Female_02_1.F.bam"
-    "$OUT_DART/sort.Female_02_2.F.bam"
-    "$OUT_DART/sort.Female_03_1.F.bam"
-    "$OUT_DART/sort.Female_03_2.F.bam"
-    "$OUT_DART/sort.Female_04_1.F.bam"
-    "$OUT_DART/sort.Female_04_2.F.bam"
-    "$OUT_DART/sort.Female_05_1.F.bam"
-    "$OUT_DART/sort.Female_05_2.F.bam"
-    "$OUT_DART/sort.Female_06_1.F.bam"
-    "$OUT_DART/sort.Female_06_2.F.bam"
-    "$OUT_DART/sort.Female_07_1.F.bam"
-    "$OUT_DART/sort.Female_07_2.F.bam"
-    "$OUT_DART/sort.Female_08_1.F.bam"
-    "$OUT_DART/sort.Female_08_2.F.bam"
-    "$OUT_DART/sort.Female_09_1.F.bam"
-    "$OUT_DART/sort.Female_09_2.F.bam"
-    "$OUT_DART/sort.Female_10.F.bam"
-    "$OUT_DART/sort.Female_11.F.bam"
-    "$OUT_DART/sort.Female_12.F.bam"
-    "$OUT_DART/sort.Female_15.F.bam"
-    "$OUT_WGS/sort.M1.F.bam"
-    "$OUT_WGS/sort.M2.F.bam"
-    "$OUT_WGS/sort.M3.F.bam"
-    "$OUT_DART/sort.Male_01.F.bam"
-    "$OUT_DART/sort.Male_02.F.bam"
-    "$OUT_DART/sort.Male_03.F.bam"
-    "$OUT_DART/sort.Male_04.F.bam"
-    "$OUT_DART/sort.Male_05.F.bam"
-    "$OUT_DART/sort.Male_06.F.bam"
-    "$OUT_DART/sort.Male_07.F.bam"
-    "$OUT_DART/sort.Male_08.F.bam"
-    "$OUT_DART/sort.Male_09.F.bam"
-    "$OUT_DART/sort.Male_10.F.bam"
-    "$OUT_DART/sort.Male_11.F.bam"
-    "$OUT_DART/sort.Male_12.F.bam"
-    "$OUT_DART/sort.Male_14.F.bam"
-    "$OUT_DART/sort.Male_15_1.F.bam"
-    "$OUT_DART/sort.Male_15_2.F.bam"
-)
-
-# Verify all files exist before running depth
-for f in "${FILES[@]}"; do
-    if [ ! -f "$f" ]; then
-        echo "ERROR: Missing expected BAM file: $f"
-        exit 1
-    fi
-done
-
-# Run Depth
-samtools depth -m 100000 -aa "${FILES[@]}" > " kmer/bwa_result/FEMALE.depth"
+echo Step7
+samtools depth -m 100000 -aa \
+/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.F1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.F2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.F3.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_01_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_01_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_02_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_02_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_03_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_03_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_04_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_04_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_05_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_05_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_06_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_06_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_07_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_07_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_08_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_08_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_09_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_09_2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_10.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_11.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_12.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Female_15.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.M1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.M2.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.M3.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_01.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_02.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_03.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_04.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_05.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_06.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_07.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_08.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_09.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_10.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_11.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_12.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_14.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_15_1.F.bam \
+/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.Male_15_2.F.bam \
+> /mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth
 
 
-# ====================================================
-# STEP 8: PERL ANALYSIS & BUSCO
-# ====================================================
-echo "Step 8: Running Analysis..."
+echo Step8
+perl /mnt/10T/lobster_project/canu_kmer/bwa/ssp2/step2.pl /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta /mnt/10T/lobster_project/kmer/megahit_output/F/MALE_ref.fasta 25 18 /mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth /mnt/10T/lobster_project/kmer/bwa_result/MALE.depth 0.9 20 100
 
-MALE_DEPTH_FILE=" kmer/bwa_result/MALE.depth"
-
-# Check if MALE.depth exists (Required for your Perl script)
-if [ ! -f "$MALE_DEPTH_FILE" ]; then
-    echo "WARNING: $MALE_DEPTH_FILE does not exist!"
-    echo "You must repeat Steps 1-7 using the MALE reference genome to create it."
-    echo "The Perl script below will likely fail or output incorrect data."
-fi
-
-perl ssp2/step2.pl \
-    "$REF_FEMALE" \
-    "$REF_MALE" \
-    25 18 \
-    " kmer/bwa_result/FEMALE.depth" \
-    "$MALE_DEPTH_FILE" \
-    0.9 20 100
 
 #Finding positive control 
 awk \
