@@ -787,7 +787,7 @@ busco -c 10 \
   -m genome \
   --offline \
   --download_path busco_downloads \
-  -i P_h_homarus_genome.fasta \
+  -i Thenus_australiensis_genome.fasta \
   -l arthropoda_odb12 \
   -o busco_augustus
 ```
@@ -797,7 +797,7 @@ busco -c 10 \
   -m protein \
   --offline \
   --download_path busco_downloads \
-  -i P_h_homarus_genome.fasta \
+  -i Thenus_australiensis_protein.faa \
   -l arthropoda_odb12 \
   -o busco_augustus
 ```
