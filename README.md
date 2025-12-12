@@ -1,6 +1,6 @@
 # Thenus_australiensis_sex_marker
 
-## 1. Quailty control of illumina reads with fastp (fastp 0.23.4)
+## 1. Quailty control of raw reads with fastp (fastp 0.23.4)
 ```bash
 fastp \
         -i \"$i1\" -I \"$i2\" \
@@ -68,7 +68,7 @@ echo "Input reads: $READS_R1, $READS_R2"
   v=-v \
   j=43 np=2
 ```
-### 3.2 Transcriptome assembly using nf-core denovotranscript v-1.2.1
+### 3.2 Transcriptome assembly using nf-core denovotranscript (v-1.2.1)
 ```bash
 nextflow run nf-core/denovotranscript \
 -r 1.2.1 \
@@ -119,7 +119,7 @@ samtools index rnaseq/sort_rna_aln.bam
 rascaf -b rnaseq/sort_rna_aln.bam -f rnaseq/rn_rascaf_scaffolded.fa -o rnaseq/rascaf_scaffolded.fa 
 rascaf rascaf-join -r rnaseq/rascaf_scaffolded.fa.out -o rnaseq/rascaf_scaffolded
 ```
-### 3.4 RNA scaffoldin of Draft Genome results using contig RNA-seq
+### 3.4 RNA scaffolding of Draft Genome results using contig RNA-seq
 ```bash
 micromamba run -n l_rna blat -stepSize=11 -repMatch=2253 -minScore=20 -minIdentity=80 rnaseq/rascaf_scaffolded.fa \
  salmon/okay.TPM1.fa \
@@ -279,7 +279,7 @@ parallel --tmpdir $PWD/tmp_parallel -j 20 '
               {}' ::: chunks_dir/*.fasta
 
 ```
-### 6.2 rRNA, miRNA and snRNA annotation using INFERNAL (v1.0) form Rfam (14.5)
+### 6.2 rRNA, miRNA and snRNA annotation using INFERNAL (v1.0) from Rfam (14.5)
 ```bash
 cmsearch --cpu 24  --rfam --tblout genome.rfam.tbl \
   rna/db/Rfam.cm \
