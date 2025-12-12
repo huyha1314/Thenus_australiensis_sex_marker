@@ -376,7 +376,8 @@ for i in `awk 'NR>1 {print $1}' crustacea_ref/Crustacea.tsv | sort | uniq`; do
 	n=`grep ">" phylogenicTree/fasta/$i.faa | wc -l`
 	echo -e "$i\t$n" >> phylogenicTree/countTarget.tsv
 done
-
+```
+```R
 Rscript -e '
 library(ggplot2)
 
@@ -389,6 +390,7 @@ xlab("#of genes") +
 ylab("#of species")
 ggsave("phylogenicTree/countTarget.pdf", width=5, height=5)
 '
+```
 
 ### concanate
 for i in `awk 'NR>1 {print $1}' crustacea_ref/Crustacea.tsv | sort | uniq`; do
@@ -407,6 +409,79 @@ rm phylogenicTree/4phylo/merged.faa
 cat phylogenicTree/fasta/*.concanated.faa >> phylogenicTree/4phylo/merged.faa
 
 ```
+
+```R
+library(ggtree)
+library(ape)
+library(treeio)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+library(ComplexHeatmap)
+library(circlize)
+library(openxlsx)
+library(scales)
+
+setwd("/media/sdb/ThayLoi/Slipper-Lobster/phylogenicTree/4phylo")
+
+tree=read.tree("merged.aln.treefile")
+
+# Annotation data
+dat=read.table("../../crustacea_ref/Crustacea.tsv", header=T, sep="\t")[,1:8]
+
+names(dat)[1]="label"
+tree=full_join(tree, dat, by="label")
+df=na.omit(as_tibble(tree))
+
+p=ggtree(tree, layout='circular', linetype=1, branch.length='none') + 
+geom_text(aes(x=branch, label=round(branch.length,2)), vjust=-.5, size=3) +
+geom_tree() +
+geom_point(aes(x+0.5, y, shape=Order), size=5) +
+geom_tiplab(aes(x+1, y, label=Organism.Name, color=Order), align=TRUE, size=5) +
+geom_hilight(df, aes(node=node, fill=Class), type = "gradient", gradient.direction = 'rt', alpha = .8, to.bottom = TRUE) +
+scale_shape_manual(values=seq(0,13)) +
+theme_tree()
+ggsave("merged.aln.treefile.pdf", width=15, height=15)
+
+p=ggtree(tree, linetype=1, branch.length='none') + 
+geom_hilight(df, aes(node=node, fill=Class), type = "gradient", gradient.direction = 'rt', alpha = .8, to.bottom = TRUE) +
+geom_point(aes(x+0.5, y, shape=Order), size=5) +
+scale_shape_manual(values=seq(0,13)) +
+geom_tree() + 
+geom_tiplab(aes(x+1, y, label=Organism.Name, color=Order), align=TRUE, size=5) +
+theme_tree()
+ggsave("merged.aln.treefile-linear.pdf", width=15, height=15)
+
+distance_matrix <- cophenetic(tree)
+
+df=merge(distance_matrix, dat, by.x=0, by.y="label")
+rownames(df)=paste0(df[,1], "-", df$Organism.Name)
+df=df[,1:59]
+df=df[,c("Row.names", df[,1])]
+
+df=df[,-1]
+names(df)=rownames(df)
+col_fun=colorRamp2(c(0, 2, 3.5), c("darkblue", "yellow2", "darkred"))
+
+heatmap_plot <- Heatmap(df, name="Genetic Distance",
+                        col=col_fun,
+                        na_col = "white", 
+                        # top_annotation=ha.col,
+                        # right_annotation = ha.row, 
+                        # column_split=split.class,
+                        # row_split=split.trend,
+                        show_column_names=TRUE, 
+                        show_row_names=TRUE,
+                        row_names_side="left",
+                        cluster_columns=TRUE,
+                        cluster_rows=TRUE,
+                        border = FALSE)
+
+pdf("merged.aln.treefile-G-Distance.pdf", height=17, width=17)
+print(heatmap_plot)
+dev.off()
+```
+
 
 ## 8. Finding candidate sex-specific and positive control marker
 https://github.com/fengtong-bio/ssp2
@@ -703,5 +778,28 @@ awk \
 -v MIN_LENGTH=10 \
 -f  PS_region/script.awk \
  kmer/bwa_result/FEMALE.depth 
+```
+
+## 9. Genome assessment
+### 9.1 Use BUSCO (v6.0.0) to check the genome completeness
+``` bash
+busco -c 10 \
+  -m genome \
+  --offline \
+  --download_path busco_downloads \
+  -i P_h_homarus_genome.fasta \
+  -l arthropoda_odb12 \
+  -o busco_augustus
+```
+### 9,2 Use BUSCO (v6.0.0) to check the protein completeness
+```bash
+busco -c 10 \
+  -m protein \
+  --offline \
+  --download_path busco_downloads \
+  -i P_h_homarus_genome.fasta \
+  -l arthropoda_odb12 \
+  -o busco_augustus
+```
 
 # References
