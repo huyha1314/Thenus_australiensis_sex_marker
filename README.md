@@ -38,7 +38,7 @@ for i in 30 33 36 39 42 45 48 51 54; do
 
     echo "Counting k-mers for $n at k=$i..."
     if [[ ! -s "$KMC_DB.1" ]]; then
-       micromamba run -n bwa kmc \
+      kmc \
       -k${i} \
       -t36 \
       -m80 \
@@ -50,7 +50,7 @@ for i in 30 33 36 39 42 45 48 51 54; do
       genomescope_analysis/tmp_kmc_dir
     fi
     if [[ ! -s "$KMC_DB.2" ]]; then
-       micromamba run -n bwa kmc \
+       kmc \
       -k${i} \
       -t36 \
       -m80 \
@@ -151,7 +151,7 @@ cd-hit-est -i salmon/okay.TPM1.fa -o salmon/2okay.minredund.fa \
 ```bash
 hisat2 -p 48 -x rnaseq/assembly -1 nf/results/cat/pooled_reads_1.merged.fastq.gz \
  -2  RNA/nf/results/cat/pooled_reads_2.merged.fastq.gz -S rnaseq/rna_aln_sam 
-micromamba run -n samtools_env samtools sort -@25 -m 2G -o rnaseq/sort_rna_aln.bam rnaseq/rna_aln_sam
+samtools sort -@25 -m 2G -o rnaseq/sort_rna_aln.bam rnaseq/rna_aln_sam
 samtools index rnaseq/sort_rna_aln.bam
 
 # scaffold using Rascaf
@@ -160,11 +160,11 @@ rascaf rascaf-join -r rnaseq/rascaf_scaffolded.fa.out -o rnaseq/rascaf_scaffolde
 ```
 ### 3.4 RNA scaffoldin of Draft Genome results using contig RNA-seq
 ```bash
-micromamba run -n l_rna blat -stepSize=11 -repMatch=2253 -minScore=20 -minIdentity=80 rnaseq/rascaf_scaffolded.fa \
+blat -stepSize=11 -repMatch=2253 -minScore=20 -minIdentity=80 rnaseq/rascaf_scaffolded.fa \
  salmon/okay.TPM1.fa \
   ./transcripts2.psl
 
-micromamba run -n l_rna bash L_RNA_scaffolder/L_RNA_scaffolder.sh \
+bash L_RNA_scaffolder/L_RNA_scaffolder.sh \
  -d .  \
   -j rnaseq3/rn_rascaf_scaffolded.fa \
   -i L_RNA_scaffolder/transcripts2.noheader.psl \
@@ -193,7 +193,7 @@ hisat2-build \
   lobster_index
 
 # 2. Align RNA-seq reads
-micromamba run -n hisat2 hisat2 -p 48 -x lobster_index \
+hisat2 -p 48 -x lobster_index \
   -1  RNA/nf/results/cat/pooled_reads_1.merged.fastq.gz \
   -2  RNA/nf/results/cat/pooled_reads_2.merged.fastq.gz | \
 samtools sort -@10 -m 3G -o rna_alignments.bam
@@ -201,7 +201,7 @@ samtools index rna_alignments.bam
 
 # 3. Run BRAKER with masked genome + RNA evidence
 export GENEMARK_PATH= script_new/annotate/augustus/GeneMark-ETP/bin/gmes
-export BAMTOOLS_PATH=/home/huyha/micromamba/envs/augustus/bin
+export BAMTOOLS_PATH=micromamba/envs/augustus/bin
 
  braker.pl \
   --genome= script_new/scaffolded_genome3/assembly.2kb.masked.fa  \
@@ -241,7 +241,7 @@ EVidenceModeler \
 ```
 ### 4.4 Gene structure prediction using PASA-update (v3.2.3)
 ```bash
-export PASAHOME=/home/huyha/micromamba/envs/pasa_env/opt/pasa-2.5.3
+export PASAHOME=pasa_env/opt/pasa-2.5.3
 
 singularity exec \
   -B /mnt/12T \
