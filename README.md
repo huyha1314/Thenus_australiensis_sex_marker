@@ -108,7 +108,7 @@ cd-hit-est -i salmon/okay.TPM1.fa -o salmon/2okay.minredund.fa \
   -c 0.97 -aS 0.95 -G 0 -g 1 -T 64 -M 0
 ``` 
 
-### 3.3 RNA scaffolding of Draft Genome results using short-read RNA-seq
+### 3.3 RNA scaffolding of Draft Genome results using short-read RNA-seq with HISAT
 ```bash
 hisat2 -p 48 -x rnaseq/assembly -1 nf/results/cat/pooled_reads_1.merged.fastq.gz \
  -2  RNA/nf/results/cat/pooled_reads_2.merged.fastq.gz -S rnaseq/rna_aln_sam 
