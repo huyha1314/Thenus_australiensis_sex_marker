@@ -614,3 +614,26 @@ awk \
  kmer/bwa_result/FEMALE.depth 
 
 ```
+## 9. Genome assessment
+### 9.1 Use BUSCO (v6.0.0) to check the genome completeness
+``` bash
+busco -c 10 \
+  -m genome \
+  --offline \
+  --download_path busco_downloads \
+  -i Thenus_australiensis_genome.fasta \
+  -l arthropoda_odb12 \
+  -o busco_augustus
+```
+### 9,2 Use BUSCO (v6.0.0) to check the protein completeness
+```bash
+busco -c 10 \
+  -m protein \
+  --offline \
+  --download_path busco_downloads \
+  -i Thenus_australiensis_protein.faa \
+  -l arthropoda_odb12 \
+  -o busco_augustus
+```
+
+# References
