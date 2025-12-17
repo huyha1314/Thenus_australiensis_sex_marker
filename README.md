@@ -108,18 +108,18 @@ cd-hit-est -i salmon/okay.TPM1.fa -o salmon/2okay.minredund.fa \
   -c 0.97 -aS 0.95 -G 0 -g 1 -T 64 -M 0
 ``` 
 
-### 3.3 RNA scaffolding of Draft Genome results using short-read RNA-seq with HISAT
+### 3.3 RNA scaffolding of Draft Genome results using short-read RNA-seq with HISAT2 and Rascaf (v20180710)
 ```bash
 hisat2 -p 48 -x rnaseq/assembly -1 nf/results/cat/pooled_reads_1.merged.fastq.gz \
  -2  RNA/nf/results/cat/pooled_reads_2.merged.fastq.gz -S rnaseq/rna_aln_sam 
 micromamba run -n samtools_env samtools sort -@25 -m 2G -o rnaseq/sort_rna_aln.bam rnaseq/rna_aln_sam
 samtools index rnaseq/sort_rna_aln.bam
 
-# scaffold using Rascaf (v20180710)
+# scaffold using Rascaf
 rascaf -b rnaseq/sort_rna_aln.bam -f rnaseq/rn_rascaf_scaffolded.fa -o rnaseq/rascaf_scaffolded.fa 
 rascaf rascaf-join -r rnaseq/rascaf_scaffolded.fa.out -o rnaseq/rascaf_scaffolded
 ```
-### 3.4 RNA scaffolding of Draft Genome results using contig RNA-seq
+### 3.4 RNA scaffolding of Draft Genome results using contig RNA-seq with L_RNA_scaffolder
 ```bash
 micromamba run -n l_rna blat -stepSize=11 -repMatch=2253 -minScore=20 -minIdentity=80 rnaseq/rascaf_scaffolded.fa \
  salmon/okay.TPM1.fa \
@@ -131,7 +131,7 @@ micromamba run -n l_rna bash L_RNA_scaffolder/L_RNA_scaffolder.sh \
   -i L_RNA_scaffolder/transcripts2.noheader.psl \
   -o scaffolded_genome3
 ```
-### 3.5 Polishing of Draft Genome results using short-read DNA-seq
+### 3.5 Polishing of Draft Genome results using short-read DNA-seq with ntEdit (v1.4.3)
 ```bash
 run-ntedit polish --draft scaffolded_genome/L_RNA_scaffolder.fasta --reads   data/merge/merge_M4 -k 31 \
 -t 64  -f --solid
