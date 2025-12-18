@@ -360,7 +360,6 @@ https://github.com/fengtong-bio/ssp2
 
 ### 7.1 Step one: K-mer dataset preparation
 ```bash
-#!/bin/bash
 # Exit immediately if any command fails
 set -e 
 
