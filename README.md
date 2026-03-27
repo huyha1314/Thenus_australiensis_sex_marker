@@ -512,7 +512,7 @@ parallel -j 2 "pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.c
 
 ```
 
-### 7.3 Step three: De novo assembly of sex-specific reads.
+### 7.3 Step three: Assembly of sex-specific reads.
 ```bash
 mkdir -p  kmer/megahit_output/
 
