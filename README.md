@@ -1,6 +1,6 @@
 # Thenus_australiensis_sex_marker
 
-#Introduction
+# Introduction
 
 ## 1. Quailty control of raw reads with fastp (fastp 0.23.4)
 ```bash
