@@ -190,6 +190,11 @@ run-ntedit polish --draft nt2/ntedit_k41_edited.fa --reads   data/merge/merge_M4
 -t 64  -f 
 seqkit seq -m 2000 input.fasta > filtered_output.fasta
 ```
+### 3.6 Repeat masking
+```bash
+
+```
+
 ## 4.Gene structure prediction
 ### 4.1 Gene structure prediction using AUGUSTUS (v3.2.3)
 ```bash
