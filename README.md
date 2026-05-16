@@ -689,4 +689,3 @@ busco -c 10 \
   -o busco_augustus
 ```
 
-# References
