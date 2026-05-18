@@ -5,7 +5,7 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(zoo)
-library(optparse) # Added for command-line argument parsing
+library(optparse)
 
 # ==============================================================================
 # 0. COMMAND LINE ARGUMENTS
@@ -60,12 +60,13 @@ p_arch <- ggplot() +
   geom_rect(data = exons, aes(xmin = start, xmax = end, ymin = 0.2, ymax = 0.4, fill = "Host Exon")) +
   geom_polygon(data = transposons, aes(x = x, y = y, group = group, fill = "Transposon")) +
   
-  geom_segment(aes(x = transcript_start, xend = transcript_end, y = 0.7, yend = 0.7), color = neo_y_green, linewidth = 0.8) +
+  # FIXED: Mapped the Neo-Y backbone color to "Intron" so it inherits the black styling from the legend
+  geom_segment(aes(x = transcript_start, xend = transcript_end, y = 0.7, yend = 0.7, color = "Intron"), linewidth = 0.8) +
   geom_rect(data = transcript_exons, aes(xmin = start, xmax = end, ymin = 0.6, ymax = 0.8, fill = "Neo-Y mRNA")) +
   
-  annotate("text", x = gene_start, y = 0.45, label = "Ancestral Host CENP-E (Genomic DNA)", hjust = 0, fontface = "bold", color = host_navy, size = 7) +
-  annotate("text", x = (58813+61548)/2, y = 0.05, label = "Region A (Tc1) K141_7345028", color = transposon_purple, fontface = "bold", size = 6.5) +
-  annotate("text", x = (104720+106467)/2, y = 0.05, label = "Region B (LINE/Jerky) k141_6893598", color = transposon_purple, fontface = "bold", size = 6.5) +
+  annotate("text", x = gene_start, y = 0.45, label = "Ancestral Host CENP-E (Genomic DNA - NonamEVm000093t1)", hjust = 0, fontface = "bold", color = host_navy, size = 7) +
+  annotate("text", x = (58813+61548)/2, y = 0.05, label = "Region A (Tc1) k141_7345028", color = transposon_purple, fontface = "bold", size = 6.25) +
+  annotate("text", x = (104710+106467)/2, y = 0.05, label = "Region B (LINE/Jerky) k141_6893598", color = transposon_purple, fontface = "bold", size = 6.25) +
   annotate("text", x = 40000, y = 0.85, label = "Truncated Neo-Y CENP-E (Expressed Testis mRNA - NonamEVm002966t3)", hjust = 0.5, fontface = "bold", color = neo_y_green, size = 6) +
   
   coord_cartesian(xlim = c(0, 122615), ylim = c(0, 1)) + 
@@ -125,7 +126,7 @@ p_zoom <- ggplot(plot_data, aes(x = POS)) +
   geom_vline(xintercept = c(1372, 1487), linetype = "dashed", color = "black", linewidth = 0.5) +
   
   geom_text(data = data.frame(POS = 1600, Smooth_Male = 25, DataType = "WGS"),
-            aes(y = Smooth_Male, label = "PCR Target: 273 bp (1372-1487 bp)"), hjust = 0, fontface = "bold", size = 6) +
+            aes(y = Smooth_Male, label = "PCR Target: 171 bp (1423-1593 bp)"), hjust = 0, fontface = "bold", size = 6) +
   
   geom_line(aes(y = Smooth_Male, color = "Male Cohort (Mean)"), linewidth = 1.2, alpha = 0.85) +
   geom_line(aes(y = Smooth_Female, color = "Female Cohort (Mean)"), linewidth = 1.2, alpha = 0.85) +

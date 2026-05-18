@@ -34,7 +34,7 @@ if (!file.exists(opt$meta)) stop(paste("Error: Metadata file not found at", opt$
 sex_colors <- c("Male" = "#56B4E9", "Female" = "#D55E00")
 
 # Colorblind-safe replacements for the Red/Green protein length bars
-len_colors <- c("Ancestral" = "#D55E00", "NeoY" = "#009E73")
+len_colors <- c("Ancestral" = "#2A4B7C", "NeoY" = "#009E73")
 
 # Define a consistent publication-ready Theme
 publication_theme <- theme_classic() +
