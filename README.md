@@ -18,16 +18,16 @@ graph TD
     D --> I(08. Genome Assessment - BUSCO)
     F --> J(09. Phylogenetic Analysis - TreeFam, MAFFT, IQ-TREE)
     
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style C fill:#bbf,stroke:#333,stroke-width:2px
-    style D fill:#bbf,stroke:#333,stroke-width:2px
-    style E fill:#bfb,stroke:#333,stroke-width:2px
-    style F fill:#bfb,stroke:#333,stroke-width:2px
-    style G fill:#bfb,stroke:#333,stroke-width:2px
-    style H fill:#fbb,stroke:#333,stroke-width:2px
-    style I fill:#fbf,stroke:#333,stroke-width:2px
-    style J fill:#fbf,stroke:#333,stroke-width:2px
+    style A fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style C fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style D fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#bfb,stroke:#333,stroke-width:2px,color:#000
+    style F fill:#bfb,stroke:#333,stroke-width:2px,color:#000
+    style G fill:#bfb,stroke:#333,stroke-width:2px,color:#000
+    style H fill:#fbb,stroke:#333,stroke-width:2px,color:#000
+    style I fill:#fbf,stroke:#333,stroke-width:2px,color:#000
+    style J fill:#fbf,stroke:#333,stroke-width:2px,color:#000
 ```
 
 ## 1. Tool Setup
