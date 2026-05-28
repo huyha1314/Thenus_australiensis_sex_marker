@@ -150,6 +150,8 @@ pixi run step_07_sex_marker
 
 To list all available tasks, you can check the `[tasks]` section in `pixi.toml`.
 
+> **Citation Note:** The sex marker discovery step (`step_07_sex_marker`) utilizes the `ssp2/step2.pl` script. This script is cloned from the repository by fengtong-bio. If you reference this pipeline, please cite their work: [https://github.com/fengtong-bio/ssp2](https://github.com/fengtong-bio/ssp2).
+
 ### Running the Complete Pipeline
 If you want to run the entire pipeline sequentially, you can execute the master run script:
 ```bash
