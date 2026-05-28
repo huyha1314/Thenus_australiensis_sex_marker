@@ -1,9 +1,10 @@
 # Thenus australiensis Sex Marker Pipeline
 
-This repository contains a reproducible genomics pipeline for the *Thenus australiensis* sex marker discovery, genome assembly, and phylogenetic analysis.
+> **Disclaimer:** This repository contains research scripts. It is intended **for reference only** and may not reproduce exactly when run out-of-the-box. During the original research, the author had to run multiple iterations, adjust parameters based on intermediate results, test databases, and fine-tune resources. Please treat these scripts as a methodological guide rather than a fully automated push-button pipeline.
 
-To improve reproducibility and management, the original monolithic script instructions have been broken down into numbered bash scripts, a centralized configuration file, and managed via `pixi`.
+This repository outlines the genomics pipeline used for the *Thenus australiensis* sex marker discovery, genome assembly, and phylogenetic analysis.
 
+To improve readability and management, the original monolithic script instructions have been broken down into numbered bash scripts, a centralized configuration file, and are loosely managed via `pixi`.
 ## Pipeline Workflow
 
 ```mermaid
