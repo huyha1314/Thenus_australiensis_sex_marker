@@ -8,27 +8,60 @@ To improve readability and management, the original monolithic script instructio
 ## Pipeline Workflow
 
 ```mermaid
-graph TD
-    A[Raw Reads] --> B(01. Quality Control - fastp)
-    B --> C(02. Genome Survey - KMC & GenomeScope)
-    C --> D(03. Genome Assembly - ABySS, Scaffolding, Polishing)
-    D --> E(04. Gene Structure Prediction - BRAKER, PASA, EVM)
-    E --> F(05. Functional Annotation - Diamond, InterPro, EggNOG)
-    D --> G(06. Non-coding RNAs Prediction - tRNAscan-SE, Rfam)
-    B --> H(07. Sex Marker Discovery - KMC, BBDuk, MEGAHIT, BWA)
-    D --> I(08. Genome Assessment - BUSCO)
-    F --> J(09. Phylogenetic Analysis - TreeFam, MAFFT, IQ-TREE)
+flowchart LR
+    %% Define Styles
+    classDef file fill:#fff,stroke:#333,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    classDef process fill:#bbf,stroke:#333,stroke-width:2px,color:#000
+    classDef final fill:#bfb,stroke:#333,stroke-width:2px,color:#000
+
+    %% Nodes: Inputs & Outputs (dashed white boxes to represent files)
+    R1([Raw FASTQ R1]):::file
+    R2([Raw FASTQ R2]):::file
+    CleanReads([Cleaned FASTQ]):::file
+    Kmers([K-mer Histogram]):::file
+    DraftAssembly([Draft Assembly FASTA]):::file
+    Scaffolded([Scaffolded Genome FASTA]):::file
+    Polished([Polished Genome FASTA]):::file
+    GFF([Annotation GFF3/Proteins]):::file
+    SexMarkers([Sex-specific Contigs]):::file
+    Tree([Phylogenetic Tree]):::file
+
+    %% Nodes: Processes (blue boxes)
+    QC[01. fastp QC]:::process
+    Survey[02. KMC & GenomeScope]:::process
+    Assemble[03. ABySS Assembly]:::process
+    Scaffold[03. RNA Scaffolding]:::process
+    Polish[03. Polishing & Masking]:::process
+    Predict[04. Gene Prediction BRAKER/PASA]:::process
+    Annotate[05. Functional Annotation]:::process
+    SMarker[07. Sex Marker Discovery]:::process
+    Phylo[09. Phylogenetic Analysis]:::process
+
+    %% Connections
+    R1 & R2 --> QC
+    QC --> |Clean Reads| CleanReads
     
-    style A fill:#f9f,stroke:#333,stroke-width:2px,color:#000
-    style B fill:#bbf,stroke:#333,stroke-width:2px,color:#000
-    style C fill:#bbf,stroke:#333,stroke-width:2px,color:#000
-    style D fill:#bbf,stroke:#333,stroke-width:2px,color:#000
-    style E fill:#bfb,stroke:#333,stroke-width:2px,color:#000
-    style F fill:#bfb,stroke:#333,stroke-width:2px,color:#000
-    style G fill:#bfb,stroke:#333,stroke-width:2px,color:#000
-    style H fill:#fbb,stroke:#333,stroke-width:2px,color:#000
-    style I fill:#fbf,stroke:#333,stroke-width:2px,color:#000
-    style J fill:#fbf,stroke:#333,stroke-width:2px,color:#000
+    CleanReads --> Survey
+    Survey --> |Stats| Kmers
+    
+    CleanReads --> Assemble
+    Assemble --> |Contigs| DraftAssembly
+    
+    DraftAssembly --> Scaffold
+    Scaffold --> |Scaffolds| Scaffolded
+    
+    Scaffolded --> Polish
+    Polish --> |Final Genome| Polished
+    
+    Polished --> Predict
+    Predict --> |Gene Models| GFF
+    
+    GFF --> Annotate
+    GFF --> Phylo
+    Phylo --> |Trees| Tree
+    
+    CleanReads --> SMarker
+    SMarker --> |Markers| SexMarkers
 ```
 
 ## 1. Tool Setup
