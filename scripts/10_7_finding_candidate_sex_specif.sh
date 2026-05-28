@@ -277,6 +277,8 @@ samtools depth -m 100000 -aa \
 
 
 echo Step8
+# Note: ssp2/step2.pl is cloned from the ssp2 repository by fengtong-bio.
+# Please cite: https://github.com/fengtong-bio/ssp2
 perl /mnt/10T/lobster_project/canu_kmer/bwa/ssp2/step2.pl /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta /mnt/10T/lobster_project/kmer/megahit_output/F/MALE_ref.fasta 25 18 /mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth /mnt/10T/lobster_project/kmer/bwa_result/MALE.depth 0.9 20 100
 
 
