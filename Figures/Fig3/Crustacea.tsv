@@ -1,0 +1,41 @@
+Assembly Name	Assembly Accession	Assembly Paired Assembly Accession	Organism Name	Genus	Family	Order	Class	Subphylum
+NRLGWU_Aamphi_draft	GCF_019059575.1	GCA_019059575.1	Amphibalanus amphitrite	Amphibalanus	Balanidae	Balanomorpha	Thecostraca	Crustacea
+CNRS_Arma_nasa_1.0	GCA_009176605.1		Armadillidium nasatum	Armadillidium	Armadillidiidae	Isopoda	Malacostraca	Crustacea
+Avulg_BH_1.0	GCA_051530015.1		Armadillidium vulgare	Armadillidium	Armadillidiidae	Isopoda	Malacostraca	Crustacea
+ASM3288406v1	GCF_032884065.1	GCA_032884065.1	Artemia franciscana	Artemia	Artemiidae	Anostraca	Branchiopoda	Crustacea
+ASM1338718v1	GCA_013387185.1		Caligus rogercresseyi	Caligus	Caligidae	Siphonostomatoida	Hexanauplia	Crustacea
+ASM3850222v1	GCF_038502225.1	GCA_038502225.1	Cherax quadricarinatus	Cherax	Parastacidae	Decapoda	Malacostraca	Crustacea
+ASM1658430v1	GCA_016584305.1		Chionoecetes opilio	Chionoecetes	Majidae	Decapoda	Malacostraca	Crustacea
+CSIRO_AGI_Dcar_HiC_V3	GCF_022539665.2	GCA_022539665.4	Daphnia carinata	Daphnia	Daphniidae	Diplostraca	Branchiopoda	Crustacea
+ASM2063170v1.1	GCF_020631705.1	GCA_020631705.2	Daphnia magna	Daphnia	Daphniidae	Diplostraca	Branchiopoda	Crustacea
+ASM2113471v1	GCF_021134715.1	GCA_021134715.1	Daphnia pulex	Daphnia	Daphniidae	Diplostraca	Branchiopoda	Crustacea
+SC_F0-13Bv2	GCF_021234035.1	GCA_021234035.2	Daphnia pulicaria	Daphnia	Daphniidae	Diplostraca	Branchiopoda	Crustacea
+Dsi	GCA_013167095.2		Daphnia sinensis	Daphnia	Daphniidae	Diplostraca	Branchiopoda	Crustacea
+Dst_b1v02_max_arth_b2g_genome	GCA_905338385.1		Darwinula stevensoni	Darwinula	Darwinulidae	Podocopida	Ostracoda	Crustacea
+ASM2467909v1	GCF_024679095.1	GCA_024679095.1	Eriocheir sinensis	Eriocheir	Varunidae	Decapoda	Malacostraca	Crustacea
+Eaff_2.0	GCF_000591075.1	GCA_000591075.2	Eurytemora carolleeae	Eurytemora	Temoridae	Calanoida	Hexanauplia	Crustacea
+Hrubra_v1	GCA_037179515.1		Halocaridina rubra	Halocaridina	Atyidae	Decapoda	Malacostraca	Crustacea
+GMGI_Hamer_2.0	GCF_018991925.1	GCA_018991925.1	Homarus americanus	Homarus	Nephropidae	Decapoda	Malacostraca	Crustacea
+Hazt_2.0.2	GCF_000764305.2	GCA_000764305.4	Hyalella azteca	Hyalella	Hyalellidae	Amphipoda	Malacostraca	Crustacea
+UVic_Lsal_1.4	GCF_016086655.4	GCA_016086655.5	Lepeophtheirus salmonis	Lepeophtheirus	Caligidae	Siphonostomatoida	Hexanauplia	Crustacea
+ASM1510439v2	GCF_015104395.2	GCA_015104395.2	Macrobrachium nipponense	Macrobrachium	Palaemonidae	Decapoda	Malacostraca	Crustacea
+ASM4041242v1	GCF_040412425.1	GCA_040412425.1	Macrobrachium rosenbergii	Macrobrachium	Palaemonidae	Decapoda	Malacostraca	Crustacea
+Mnor_HA_v2	GCA_964058975.1		Meganyctiphanes norvegica	Meganyctiphanes	Euphausiidae	Euphausiacea	Malacostraca	Crustacea
+Nmo_b1v02_max_arth_b2g_genome	GCA_905338405.1		Notodromas monacha	Notodromas	Cyprididae	Podocopida	Ostracoda	Crustacea
+ASM4674206v1	GCF_046742065.1	GCA_046742065.1	Oratosquilla oratoria	Oratosquilla	Squillidae	Stomatopoda	Malacostraca	Crustacea
+ASM3689809v2	GCF_036898095.1	GCA_036898095.2	Palaemon carinicauda	Palaemon	Palaemonidae	Decapoda	Malacostraca	Crustacea
+ASM3632096v1	GCF_036320965.1	GCA_036320965.1	Panulirus ornatus	Panulirus	Palinuridae	Decapoda	Malacostraca	Crustacea
+ASM1920278v2	GCF_019202785.1	GCA_019202785.2	Penaeus chinensis	Penaeus	Penaeidae	Decapoda	Malacostraca	Crustacea
+CIBA_Pind_1.3	GCF_018983055.1	GCA_018983055.3	Penaeus indicus	Penaeus	Penaeidae	Decapoda	Malacostraca	Crustacea
+Mj_TUMSAT_v1.0	GCF_017312705.1	GCA_017312705.1	Penaeus japonicus	Penaeus	Penaeidae	Decapoda	Malacostraca	Crustacea
+NSTDA_Pmon_1	GCF_015228065.2	GCA_015228065.1	Penaeus monodon	Penaeus	Penaeidae	Decapoda	Malacostraca	Crustacea
+ASM4276789v1	GCF_042767895.1	GCA_042767895.1	Penaeus vannamei	Penaeus	Penaeidae	Decapoda	Malacostraca	Crustacea
+Cinc_v1.9	GCA_033782935.1		Petrolisthes cinctipes	Petrolisthes	Porcellanidae	Decapoda	Malacostraca	Crustacea
+Mani_v1.7	GCA_034508575.1		Petrolisthes manimaculis	Petrolisthes	Porcellanidae	Decapoda	Malacostraca	Crustacea
+Ppol_2.1	GCF_011947565.3	GCA_011947565.3	Pollicipes pollicipes	Pollicipes	Pollicipedidae	Pollicipedomorpha	Thecostraca	Crustacea
+ASM1759143v1	GCF_017591435.1	GCA_017591435.1	Portunus trituberculatus	Portunus	Portuninae	Decapoda	Malacostraca	Crustacea
+FALCON_Pclarkii_2.0	GCF_040958095.1	GCA_040958095.1	Procambarus clarkii	Procambarus	Cambarinae	Decapoda	Malacostraca	Crustacea
+ASM3559412v1	GCF_035594125.1	GCA_035594125.1	Scylla paramamosain	Scylla	Portuninae	Decapoda	Malacostraca	Crustacea
+Tcal_SD_v2.1	GCF_007210705.1	GCA_007210705.1	Tigriopus californicus	Tigriopus	Harpacticidae	Harpacticoida	Hexanauplia	Crustacea
+ASM678305v1	GCA_006783055.1		Trinorchestia longiramus	Trinorchestia	Talitridae	Amphipoda	Malacostraca	Crustacea
+T.aus	T.aus		Thenus australiensis (This study)	Thenus	Scyllaridae	Decapoda	Malacostraca	Crustacea
