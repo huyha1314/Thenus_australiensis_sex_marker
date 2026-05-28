@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Genomics pipeline for Thenus australiensis sex marker discovery"
 authors = ["Huy Ha"]
 platforms = ["linux-64"]
+channels = ["bioconda", "conda-forge"]
 
 [dependencies]
 fastp = ">=0.23.4"
