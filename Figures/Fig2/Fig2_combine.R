@@ -126,4 +126,4 @@ final_figure <- (wrap_elements(p_venn) / p_cog_bar / p_key) +
   theme(plot.tag = element_text(size = 45, face = "bold"))
 
 ggsave(paste0(opt$out, ".png"), plot = final_figure, width = 26, height = 32, dpi = 300, bg = "white")
-ggsave(paste0(opt$out, ".pdf"), plot = final_figure, width = 26, height = 32, dpi = 300)
+ggsave(paste0(opt$out, ".pdf"), plot = final_figure, width = 26, height = 32, device = cairo_pdf)

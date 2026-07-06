@@ -7,6 +7,7 @@ echo "Starting Genomics Pipeline..."
 pixi run step_01_qc
 pixi run step_02_survey
 pixi run step_03_assembly
+pixi run step_03_4_repeat
 pixi run step_04_gene_pred
 pixi run step_05_1_blast
 pixi run step_05_2_blast

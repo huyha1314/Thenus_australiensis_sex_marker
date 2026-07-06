@@ -2,7 +2,7 @@
 source config.sh
 
 echo "Starting 5.2 Diamond Blast (v0.88.2) the SWISS-PROT database (Release 2022_01)"
-diamond blastp \
+pixi run diamond blastp \
   --query  anno/gff/lobster_pasa_updated.proteins.fasta  \
   --db  db/uniprot/uniprot_sprot.dmnd \
   --out swisprot.out \

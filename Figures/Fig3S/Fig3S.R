@@ -151,6 +151,6 @@ ggsave(png_file, plot = p, width = 12, height = 6, dpi = 300, bg = "white")
 # Save as PDF (PDFs are vector graphics, so DPI is not needed)
 pdf_file <- paste0(base_name, ".pdf")
 cat(" -> Saving PDF to:", pdf_file, "\n")
-ggsave(pdf_file, plot = p, width = 12, height = 6, bg = "white")
+ggsave(pdf_file, plot = p, width = 12, height = 6, device = cairo_pdf, bg = "white")
 
 cat("Done! Both formats generated successfully.\n")

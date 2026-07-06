@@ -2,7 +2,7 @@
 source config.sh
 
 echo "Starting 5.1 Diamond Blast (v0.88.2) the whole NCBI NR database (Release 2021_9_29)"
-diamond blastp \
+pixi run diamond blastp \
   --query  anno/lobster_pasa_updated.proteins.no_stop.fasta \
   --db  db/nr.dmnd \
   --out nr.tsv \

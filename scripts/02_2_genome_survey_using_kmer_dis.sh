@@ -11,7 +11,7 @@ mkdir -p "${MAIN_OUTPUT_DIR}"
 cd "${MAIN_OUTPUT_DIR}"
 
 # Loop through k-mer sizes and samples
-for i in 30 33 36 39 42 45 48 51 54; do 
+for i in 18 21 24 27 30 33 36 39 42 45 48 51 54; do 
   for n in F4 M4; do
 
     KMC_DB="merge_${n}_k${i}_kmc"
@@ -25,7 +25,7 @@ for i in 30 33 36 39 42 45 48 51 54; do
 
     echo "Counting k-mers for $n at k=$i..."
     if [[ ! -s "$KMC_DB.1" ]]; then
-      kmc \
+      pixi run kmc \
       -k${i} \
       -t36 \
       -m80 \
@@ -37,7 +37,7 @@ for i in 30 33 36 39 42 45 48 51 54; do
       genomescope_analysis/tmp_kmc_dir
     fi
     if [[ ! -s "$KMC_DB.2" ]]; then
-       kmc \
+       pixi run kmc \
       -k${i} \
       -t36 \
       -m80 \
@@ -49,13 +49,13 @@ for i in 30 33 36 39 42 45 48 51 54; do
       genomescope_analysis/tmp_kmc_dir
     fi
    
-    kmc_tools simple $KMC_DB.1 $KMC_DB.2 union $KMC_DB.merged
+    pixi run kmc_tools simple $KMC_DB.1 $KMC_DB.2 union $KMC_DB.merged
 
     echo "Generating histogram for $n at k=$i..."
-   kmc_tools transform "./$KMC_DB.merged" histogram "$HISTO_FILE"
+   pixi run kmc_tools transform "./$KMC_DB.merged" histogram "$HISTO_FILE"
 
     echo "Running GenomeScope for $n at k=$i..."
-   Rscript "$GENOMESCOPE_SCRIPT" \
+   pixi run Rscript "$GENOMESCOPE_SCRIPT" \
       -i "$HISTO_FILE" \
       -o "$OUTPUT_DIR" \
       -k $i

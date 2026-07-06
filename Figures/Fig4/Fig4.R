@@ -163,7 +163,7 @@ png_output <- paste0(output_prefix, ".png")
 ggsave(pdf_output, 
        plot = combined_masterpiece, 
        width = 14, height = 12, 
-       dpi = 300)
+       device = cairo_pdf)
 
 # 2. Save as PNG
 ggsave(png_output, 

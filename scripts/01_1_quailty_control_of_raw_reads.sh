@@ -2,8 +2,8 @@
 source config.sh
 
 echo "Starting 1. Quailty control of raw reads with fastp (fastp 0.23.4)"
-fastp \
-        -i \"$i1\" -I \"$i2\" \
+pixi run fastp \
+        -i "$i1" -I "$i2" \
         -o result/fastp/trim.${sample}_1.fq.gz \
         -O result/fastp/trim.${sample}_2.fq.gz \
         --trim_front1 8 --trim_front2 8 \

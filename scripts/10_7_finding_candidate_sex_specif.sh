@@ -47,7 +47,7 @@ run_kmc() {
             # Skip if already exists to save time (Optional)
             if [ ! -d "$output_db" ]; then
                 echo "Processing $o with k=$k..."
-                kmc -k"$k" -t32 -m80 -ci2 "$i" "$output_db" "$TMP_DIR"
+                pixi run kmc -k"$k" -t32 -m80 -ci2 "$i" "$output_db" "$TMP_DIR"
             else
                 echo "Skipping $o (k=$k), output already exists."
             fi
@@ -66,10 +66,10 @@ echo "Merging k-mers..."
 
 # You might need to generate these operation files dynamically if filenames vary.
 # Assuming your manually created files are correct:
-kmc_tools complex "$SCRIPT_DIR/33.kmer_operate.F"
-kmc_tools complex "$SCRIPT_DIR/33.kmer_operate.M"
-kmc_tools complex "$SCRIPT_DIR/55.kmer_operate.F"
-kmc_tools complex "$SCRIPT_DIR/55.kmer_operate.M"
+pixi run kmc_tools complex "$SCRIPT_DIR/33.kmer_operate.F"
+pixi run kmc_tools complex "$SCRIPT_DIR/33.kmer_operate.M"
+pixi run kmc_tools complex "$SCRIPT_DIR/55.kmer_operate.F"
+pixi run kmc_tools complex "$SCRIPT_DIR/55.kmer_operate.M"
 
 
 # --- 3. Extract Unique K-mers (Subtraction) ---
@@ -88,10 +88,10 @@ process_unique() {
     local out_fasta="$FINAL_OUT_DIR/k$k.${set1}.merged_kmers.fasta"
 
     # Subtract
-    kmc_tools simple "$in_db1" "$in_db2" kmers_subtract "$uniq_db" -ci3
+    pixi run kmc_tools simple "$in_db1" "$in_db2" kmers_subtract "$uniq_db" -ci3
     
     # Transform to text
-    kmc_tools transform "$uniq_db" dump "$dump_txt" -ci3
+    pixi run kmc_tools transform "$uniq_db" dump "$dump_txt" -ci3
 #WGS
 mkdir -p /mnt/10T/lobster_project/kmer/clean_read
 mkdir -p /mnt/10T/lobster_project/kmer/clean_read/QC
@@ -100,7 +100,7 @@ for i in `ls /mnt/10T/lobster_project/kmer/clean_read/k33.clean_clean_merge_F*_R
 a=`echo $i | sed -e  's/R1/R2/'`
 b=`basename ${a}`
 c=`basename ${i}`
-bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta -Xmx90g  usejni=t \
+pixi run bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta -Xmx90g  usejni=t \
          outm1=/mnt/10T/lobster_project/kmer/clean_read/k55_$c outm2=/mnt/10T/lobster_project/kmer/clean_read/k55_$b k=21 hdist=0 \
          stats=$b.stats.txt minlength=50 &>  k55.M.$c.bbduck.log
 done
@@ -109,7 +109,7 @@ for i in `ls /mnt/10T/lobster_project/kmer/clean_read/k33.clean_clean_merge_M*_R
 a=`echo $i | sed -e  's/R1/R2/'`
 b=`basename ${a}`
 c=`basename ${i}`
-bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta -Xmx90g  usejni=t\
+pixi run bbduk.sh in1=$i in2=$a ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta -Xmx90g  usejni=t\
          outm1=/mnt/10T/lobster_project/kmer/clean_read/k55_$c outm2=/mnt/10T/lobster_project/kmer/clean_read/k55_$b k=21 hdist=0 \
          stats=$b.stats.txt minlength=50 &>  k55.F.$c.bbduck.log
 done
@@ -121,7 +121,7 @@ for i in /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.clean_trim.Female
     c=$(basename "$i")  
     echo $i
     [[ -s "/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" ]] || \
-    bbduk.sh in="$i" ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta -Xmx75g usejni=f \
+    pixi run bbduk.sh in="$i" ref=/mnt/10T/lobster_project/kmer/k55.F.merged_kmers.fasta -Xmx75g usejni=f \
              outm=/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_"$c" \
              k=21 hdist=0 stats="$c.k55.stats.txt" minlength=50 threads=8 &> k55.M."$c".bbduk.log >> bbduk.F.txt
 done
@@ -132,21 +132,21 @@ for i in  /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.clean_trim.Male*
     c=`basename ${i}`   
     echo $i
     [[ -s "/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_$c" ]] || \
-    bbduk.sh in=$i ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta -Xmx75g usejni=f \
+    pixi run bbduk.sh in=$i ref=/mnt/10T/lobster_project/kmer/k55.M.merged_kmers.fasta -Xmx75g usejni=f \
              outm=/mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k55_"$c" \
              k=21 hdist=0 stats=$c.k55.stats.txt minlength=50 threads=8  &> k55.M.$c.bbduck.log >> bbduk.M.txt
 done
 
 
-parallel -j 2 "pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F*_{}.fastq.gz| pigz -p 8 > /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_F.{}.fastq.gz
+parallel -j 2 "pixi run pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F*_{}.fastq.gz| pixi run pigz -p 8 > /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_F.{}.fastq.gz
 " ::: R1 R2 
-parallel -j 2 "pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M*_{}.fastq.gz| pigz -p 8 > /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_M.{}.fastq.gz
+parallel -j 2 "pixi run pigz -dc -p 16 /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M*_{}.fastq.gz| pixi run pigz -p 8 > /mnt/10T/lobster_project/kmer/merged_read_filtered/Merged_M.{}.fastq.gz
 " ::: R1 R2 
 
 mkdir -p  kmer/megahit_output/
 
 # assembly FeMale
-megahit \
+pixi run megahit \
     -1  kmer/merged_read_filtered/Merged_F.R1.fastq.gz \
     -2  kmer/merged_read_filtered/Merged_F.R2.fastq.gz \
     --k-min 27 --k-max 141 --k-step 20 \
@@ -159,7 +159,7 @@ megahit \
 exit
 
 # assembly Male
-megahit \
+pixi run megahit \
     -1  kmer/merged_read_filtered/Merged_M.R1.fastq.gz \
     -2  kmer/merged_read_filtered/Merged_M.R2.fastq.gz \
     --k-min 27 --k-max 141 --k-step 20 \
@@ -171,7 +171,7 @@ megahit \
 
 # Rename and index reference genome
 mv /mnt/10T/lobster_project/kmer/megahit_output/F/final.contigs.fa /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta
-bwa index /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta
+pixi run bwa index /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta
 
 echo Step1
 maping
@@ -179,8 +179,8 @@ parallel -j 3 '
     i={}
     a=$(echo "$i" | sed "s/_R1.fastq.gz/_R2.fastq.gz/")
     b=$(basename "$i" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
-    bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta" "$i" "$a" | \
-    samtools view -bS ->  "/mnt/10T/lobster_project/kmer/bwa_result/WGS/$b.F.bam"
+    pixi run bwa mem -t 40 -M -T 50 -B 5 -O 10 -E 3 -Y "/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta" "$i" "$a" | \
+    pixi run samtools view -bS ->  "/mnt/10T/lobster_project/kmer/bwa_result/WGS/$b.F.bam"
 ' :::  /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F3_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M1_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M2_R1.fastq.gz
 
 
@@ -190,7 +190,7 @@ echo Step2
 parallel -j 3 '
     i={}
     b=$(basename "$i" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
-    samtools sort -@ 27 "/mnt/10T/lobster_project/kmer/bwa_result/WGS/$b.F.bam" -o "/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.${b}.F.bam"
+    pixi run samtools sort -@ 27 "/mnt/10T/lobster_project/kmer/bwa_result/WGS/$b.F.bam" -o "/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.${b}.F.bam"
 ' ::: /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F3_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M1_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M2_R1.fastq.gz
 
 
@@ -201,7 +201,7 @@ parallel -j 6 '
     a=$(echo "$i" | sed "s/_R1.fastq.gz/_R2.fastq.gz/")
     b=$(basename "$i" | sed "s/k55_k33.clean_clean_merge_//" | sed "s/_R1.fastq.gz//")
 
-    samtools index "/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.${b}.F.bam"
+    pixi run samtools index "/mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.${b}.F.bam"
 ' ::: /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_F3_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M1_R1.fastq.gz /mnt/10T/lobster_project/kmer/clean_read/k55_k33.clean_clean_merge_M2_R1.fastq.gz
 
 
@@ -210,26 +210,26 @@ echo Step4
 #maping
 parallel -j 4 '
     b=$(basename {} | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
-    bwa mem -t 20 -M -T 50 -B 5 -O 10 -E 3 -Y "/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta" {} | \
-    samtools view -bS -> "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/${b}.F.bam"
+    pixi run bwa mem -t 20 -M -T 50 -B 5 -O 10 -E 3 -Y "/mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta" {} | \
+    pixi run samtools view -bS -> "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/${b}.F.bam"
     
 ' ::: /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz
 echo Step5
 #sort
 parallel -j 4 '
     b=$(basename {} | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
-    samtools sort -@ 20 "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/${b}.F.bam" -o "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.${b}.F.bam"
+    pixi run samtools sort -@ 20 "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/${b}.F.bam" -o "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.${b}.F.bam"
     
 ' ::: /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz
 echo Step6
 #index.sort
 parallel -j 8 '
     b=$(basename {} | sed "s/k33.clean_trim.//" | sed "s/.fq.gz//")
-    samtools index "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.${b}.F.bam"
+    pixi run samtools index "/mnt/10T/lobster_project/kmer/bwa_result/dart-seq/sort.${b}.F.bam"
 ' ::: /mnt/10T/lobster_project/kmer/DarT_seq_clean_read/k33.*.fq.gz
 
 echo Step7
-samtools depth -m 100000 -aa \
+pixi run samtools depth -m 100000 -aa \
 /mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.F1.F.bam \
 /mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.F2.F.bam \
 /mnt/10T/lobster_project/kmer/bwa_result/WGS/sort.F3.F.bam \
@@ -279,7 +279,7 @@ samtools depth -m 100000 -aa \
 echo Step8
 # Note: ssp2/step2.pl is cloned from the ssp2 repository by fengtong-bio.
 # Please cite: https://github.com/fengtong-bio/ssp2
-perl /mnt/10T/lobster_project/canu_kmer/bwa/ssp2/step2.pl /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta /mnt/10T/lobster_project/kmer/megahit_output/F/MALE_ref.fasta 25 18 /mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth /mnt/10T/lobster_project/kmer/bwa_result/MALE.depth 0.9 20 100
+pixi run perl /mnt/10T/lobster_project/canu_kmer/bwa/ssp2/step2.pl /mnt/10T/lobster_project/kmer/megahit_output/F/FEMALE_ref.fasta /mnt/10T/lobster_project/kmer/megahit_output/F/MALE_ref.fasta 25 18 /mnt/10T/lobster_project/kmer/bwa_result/FEMALE.depth /mnt/10T/lobster_project/kmer/bwa_result/MALE.depth 0.9 20 100
 
 
 #Finding positive control 

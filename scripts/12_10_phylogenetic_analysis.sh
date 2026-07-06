@@ -21,9 +21,9 @@ done
 
 # Extract target orthologous sequences across reference crustacean species
 for i in `awk 'NR>1 {print $2}' crustacea_ref/Refseq/Crustacea.tsv | sort | uniq`; do
-    blastp -query phylogenicTree/fasta/T.aus_ortho.faa -subject crustacea_ref/Refseq/ncbi_dataset/data/$i/protein.faa -outfmt 6 -max_target_seqs 1 -out phylogenicTree/tbl/$i.tsv 
+    pixi run blastp -query phylogenicTree/fasta/T.aus_ortho.faa -subject crustacea_ref/Refseq/ncbi_dataset/data/$i/protein.faa -outfmt 6 -max_target_seqs 1 -out phylogenicTree/tbl/$i.tsv 
     cut -f2 phylogenicTree/tbl/$i.tsv | sort | uniq > phylogenicTree/tbl/$i.list
-    samtools faidx crustacea_ref/Refseq/ncbi_dataset/data/$i/protein.faa -r phylogenicTree/tbl/$i.list > phylogenicTree/fasta/$i.faa
+    pixi run samtools faidx crustacea_ref/Refseq/ncbi_dataset/data/$i/protein.faa -r phylogenicTree/tbl/$i.list > phylogenicTree/fasta/$i.faa
 done
 
 # Concatenate proteins and merge
@@ -40,8 +40,8 @@ sed -i -e "s/*//g" phylogenicTree/fasta/T.aus_ortho.concanated.faa
 
 cat phylogenicTree/fasta/*.concanated.faa > phylogenicTree/4phylo/merged.faa
 # Alignment with MAFFT
-mafft --thread 48 --auto --clustalout --reorder phylogenicTree/4phylo/merged.faa > phylogenicTree/4phylo/merged.aln
+pixi run mafft --thread 48 --auto --clustalout --reorder phylogenicTree/4phylo/merged.faa > phylogenicTree/4phylo/merged.aln
 
 # Construct phylogenetic tree using IQ-TREE
-iqtree -s phylogenicTree/4phylo/merged.aln -nt 48 -m Blosum62
-iqtree -s phylogenicTree/4phylo/merged.aln -b 100 -nt 48 -m Blosum62
+pixi run iqtree -s phylogenicTree/4phylo/merged.aln -nt 48 -m Blosum62
+pixi run iqtree -s phylogenicTree/4phylo/merged.aln -b 100 -nt 48 -m Blosum62

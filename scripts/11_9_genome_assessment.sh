@@ -2,7 +2,7 @@
 source config.sh
 
 echo "Starting 9. Genome assessment"
-busco -c 10 \
+pixi run busco -c 10 \
   -m protein \
   --offline \
   --download_path busco_downloads \

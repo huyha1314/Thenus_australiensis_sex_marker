@@ -94,4 +94,4 @@ heatmap_plot <- ggplot(combined_data, aes(x = POS, y = Sample, fill = Depth_Capp
 
 # Export
 ggsave(paste0(opt$out, ".png"), plot = heatmap_plot, width = 14, height = 10, dpi = 300, bg = "white")
-ggsave(paste0(opt$out, ".pdf"), plot = heatmap_plot, width = 14, height = 10, dpi = 300, bg = "white")
+ggsave(paste0(opt$out, ".pdf"), plot = heatmap_plot, width = 14, height = 10, device = cairo_pdf, bg = "white")

@@ -170,6 +170,6 @@ pdf_out <- paste0(opt$out, ".pdf")
 
 # Save as a wide, high-resolution layout (24x14 inches)
 ggsave(png_out, final_combined_figure, width=24, height=14, dpi=300, bg="white")
-ggsave(pdf_out, final_combined_figure, width=24, height=14, dpi=300)
+ggsave(pdf_out, final_combined_figure, width=24, height=14, device = cairo_pdf)
 
 cat(paste("Success: 4-Panel combined figure saved as", png_out, "\n"))

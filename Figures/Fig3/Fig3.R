@@ -102,7 +102,7 @@ cat("Saving plots...\n")
 ggsave(pdf_output, 
        plot = p, 
        width = 15, height = 15, 
-       dpi = 300)
+       device = cairo_pdf)
 
 # 2. Save as PNG (300 DPI with white background)
 ggsave(png_output, 

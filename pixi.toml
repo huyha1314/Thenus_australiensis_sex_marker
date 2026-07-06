@@ -1,49 +1,78 @@
-[project]
+[workspace]
 name = "thenus_australiensis_sex_marker"
 version = "0.1.0"
 description = "Genomics pipeline for Thenus australiensis sex marker discovery"
 authors = ["Huy Ha"]
 platforms = ["linux-64"]
-channels = ["bioconda", "conda-forge"]
+channels = ["conda-forge", "bioconda"]
 
 [dependencies]
+python = ">=3.10"
+parallel = ">=20230522"
+nextflow = ">=22.10"
+
+[feature.qc.dependencies]
 fastp = ">=0.23.4"
+seqkit = ">=2.4.0"
+pigz = ">=2.8"
+
+[feature.assembly.dependencies]
 kmc = ">=3.2.1"
 abyss = ">=2.3.10"
-nextflow = ">=22.10"
-salmon = ">=1.10.0"
-hisat2 = ">=2.2.1"
+megahit = ">=1.2.9"
+bbmap = ">=39.01"
+bwa = ">=0.7.17"
 samtools = ">=1.17"
-seqkit = ">=2.4.0"
-braker = ">=3.0.0"
+
+[feature.annotation.dependencies]
+braker3 = ">=3.0.0"
 diamond = ">=2.1.8"
 interproscan = ">=5.52"
 eggnog-mapper = ">=2.1.9"
 trnascan-se = ">=2.0.12"
 infernal = ">=1.1.4"
-bbmap = ">=39.01"
-megahit = ">=1.2.9"
-bwa = ">=0.7.17"
-parallel = ">=20230522"
-pigz = ">=2.8"
 busco = ">=5.4.7"
+repeatmasker = ">=4.1.2"
+repeatmodeler = ">=2.0.1"
+
+[feature.transcriptomics.dependencies]
+salmon = ">=1.10.0"
+hisat2 = ">=2.2.1"
+
+[feature.phylo.dependencies]
 mafft = ">=7.520"
 iqtree = ">=2.2.2"
-python = ">=3.10"
 r-base = ">=4.3"
 
+[environments]
+qc = ["qc"]
+assembly = ["assembly"]
+annotation = ["annotation"]
+transcriptomics = ["transcriptomics"]
+phylo = ["phylo"]
+
 [tasks]
+run_all = "bash run_all.sh"
+
+[feature.qc.tasks]
 step_01_qc = "bash scripts/01_1_quailty_control_of_raw_reads.sh"
+
+[feature.assembly.tasks]
 step_02_survey = "bash scripts/02_2_genome_survey_using_kmer_dis.sh"
 step_03_assembly = "bash scripts/03_3_genome_assembly.sh"
+
+[feature.annotation.tasks]
+step_03_4_repeat = "bash scripts/03_4_repeat_annotation.sh"
 step_04_gene_pred = "bash scripts/04_4_gene_structure_prediction.sh"
 step_05_1_blast = "bash scripts/05_5_1_diamond_blast.sh"
 step_05_2_blast = "bash scripts/06_5_2_diamond_blast.sh"
 step_05_3_interpro = "bash scripts/07_5_3_protein_domain_annotation_.sh"
 step_05_4_eggnog = "bash scripts/08_5_4_protein_annotation_by_eggn.sh"
 step_06_ncrna = "bash scripts/09_6_noncoding_rnas_prediction.sh"
-step_07_sex_marker = "bash scripts/10_7_finding_candidate_sex_specif.sh"
 step_09_assessment = "bash scripts/11_9_genome_assessment.sh"
-step_10_phylo = "bash scripts/12_10_phylogenetic_analysis.sh"
 
-run_all = "bash run_all.sh"
+[feature.transcriptomics.tasks]
+step_07_sex_marker = "bash scripts/10_7_finding_candidate_sex_specif.sh"
+
+[feature.phylo.tasks]
+step_10_phylo = "bash scripts/12_10_phylogenetic_analysis.sh"

@@ -209,7 +209,7 @@ png_output <- paste0(out_prefix, "_classes.png")
 ggsave(pdf_output, 
        plot = p, 
        width = 8, height = 7, 
-       dpi = 300)
+       device = cairo_pdf)
 
 # Save as high-resolution PNG
 ggsave(png_output, 
