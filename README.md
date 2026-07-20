@@ -10,7 +10,7 @@ To improve readability and management, the original monolithic script instructio
 ```mermaid
 flowchart LR
     %% Define Styles
-    classDef file fill:#fff,stroke:#333,stroke-width:2px,color:#000,stroke-dasharray: 5 5
+    classDef file fill:#fff,stroke:#333,stroke-width:2px,color:#000,stroke-dasharray:5 5
     classDef process fill:#bbf,stroke:#333,stroke-width:2px,color:#000
     classDef final fill:#bfb,stroke:#333,stroke-width:2px,color:#000
 
@@ -38,30 +38,31 @@ flowchart LR
     Phylo[09. Phylogenetic Analysis]:::process
 
     %% Connections
-    R1 & R2 --> QC
-    QC --> |Clean Reads| CleanReads
+    R1 --> QC
+    R2 --> QC
+    QC -->|Clean Reads| CleanReads
     
     CleanReads --> Survey
-    Survey --> |Stats| Kmers
+    Survey -->|Stats| Kmers
     
     CleanReads --> Assemble
-    Assemble --> |Contigs| DraftAssembly
+    Assemble -->|Contigs| DraftAssembly
     
     DraftAssembly --> Scaffold
-    Scaffold --> |Scaffolds| Scaffolded
+    Scaffold -->|Scaffolds| Scaffolded
     
     Scaffolded --> Polish
-    Polish --> |Final Genome| Polished
+    Polish -->|Final Genome| Polished
     
     Polished --> Predict
-    Predict --> |Gene Models| GFF
+    Predict -->|Gene Models| GFF
     
     GFF --> Annotate
     GFF --> Phylo
-    Phylo --> |Trees| Tree
+    Phylo -->|Trees| Tree
     
     CleanReads --> SMarker
-    SMarker --> |Markers| SexMarkers
+    SMarker -->|Markers| SexMarkers
 ```
 
 ## 1. Tool Setup
