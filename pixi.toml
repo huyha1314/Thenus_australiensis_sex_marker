@@ -43,6 +43,9 @@ hisat2 = ">=2.2.1"
 mafft = ">=7.520"
 iqtree = ">=2.2.2"
 r-base = ">=4.3"
+r-ggplot2 = ">=3.4.0"
+r-cowplot = ">=1.1.1"
+r-magick = ">=2.7.3"
 
 [environments]
 qc = ["qc"]

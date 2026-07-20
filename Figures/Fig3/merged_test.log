@@ -1,0 +1,115 @@
+IQ-TREE version 3.1.2 for Linux x86 64-bit built May 17 2026
+Developed by Bui Quang Minh, Thomas Wong, Nhan Ly-Trong, Huaiyan Ren
+Contributed by Lam-Tung Nguyen, Dominik Schrempf, Chris Bielow,
+Olga Chernomor, Michael Woodhams, Diep Thi Hoang, Heiko Schmidt
+
+Host:    dummycomputer (AVX2, FMA3, 13 GB RAM)
+Command: /home/huyha/Desktop/lob/Thenus_australiensis_sex_marker/.pixi/envs/phylo/bin/iqtree -s Figures/Fig3/merged_test.faa -m Blosum62 -B 1000 -nt AUTO -pre Figures/Fig3/merged_test
+Seed:    558994 (Using SPRNG - Scalable Parallel Random Number Generator)
+Time:    Thu Jul 16 13:31:31 2026
+Kernel:  AVX+FMA - auto-detect threads (8 CPU cores detected)
+
+Reading alignment file Figures/Fig3/merged_test.faa ... Fasta format detected
+Reading fasta file: done in 0.013598 secs using 38.54% CPU
+Alignment most likely contains protein sequences
+Constructing alignment: done in 0.014066 secs using 82.67% CPU
+Alignment has 40 sequences with 2000 columns, 2000 distinct patterns
+1999 parsimony-informative, 1 singleton sites, 0 constant sites
+                 Gap/Ambiguity  Composition  p-value
+Analyzing sequences: done in 0.0101669 secs using 154% CPU
+   1  GCA_006783055.1    0.00%    failed      0.00%
+   2  GCA_009176605.1    0.00%    failed      0.00%
+   3  GCA_013167095.2    0.00%    failed      0.00%
+   4  GCA_013387185.1    0.00%    failed      0.12%
+   5  GCA_016584305.1    0.00%    failed      0.61%
+   6  GCA_033782935.1    0.00%    failed      0.10%
+   7  GCA_034508575.1    0.00%    failed      1.84%
+   8  GCA_037179515.1    0.00%    passed      7.94%
+   9  GCA_051530015.1    0.00%    failed      0.00%
+  10  GCA_905338385.1    0.00%    failed      0.00%
+  11  GCA_905338405.1    0.00%    failed      0.02%
+  12  GCA_964058975.1    0.00%    failed      0.02%
+  13  GCF_000591075.1    0.05%    passed      6.33%
+  14  GCF_000764305.2    0.00%    failed      0.00%
+  15  GCF_007210705.1    0.00%    failed      0.00%
+  16  GCF_011947565.3    0.00%    failed      0.00%
+  17  GCF_015104395.2    0.00%    passed      7.08%
+  18  GCF_015228065.2    0.00%    failed      2.15%
+  19  GCF_016086655.4    0.05%    failed      0.00%
+  20  GCF_017312705.1    0.00%    passed     12.62%
+  21  GCF_017591435.1    0.10%    failed      0.04%
+  22  GCF_018983055.1    0.00%    passed     47.69%
+  23  GCF_018991925.1    0.00%    failed      0.00%
+  24  GCF_019059575.1    0.00%    failed      0.00%
+  25  GCF_019202785.1    0.00%    passed     20.33%
+  26  GCF_020631705.1    0.00%    passed      7.45%
+  27  GCF_021134715.1    0.00%    failed      0.03%
+  28  GCF_021234035.1    0.05%    failed      0.00%
+  29  GCF_022539665.2    0.00%    failed      0.09%
+  30  GCF_024679095.1    0.00%    passed      5.40%
+  31  GCF_032884065.1    0.00%    failed      0.00%
+  32  GCF_035594125.1    0.00%    failed      1.43%
+  33  GCF_036320965.1    0.00%    failed      0.00%
+  34  GCF_036898095.1    0.00%    failed      2.31%
+  35  GCF_038502225.1    0.00%    failed      0.03%
+  36  GCF_040412425.1    0.00%    failed      0.01%
+  37  GCF_040958095.1    0.00%    failed      0.00%
+  38  GCF_042767895.1    0.00%    failed      0.00%
+  39  GCF_046742065.1    0.00%    failed      0.00%
+  40  T.aus              0.00%    failed      0.00%
+****  TOTAL              0.01%  32 sequences failed composition chi2 test (p-value<5%; df=19)
+Checking for duplicate sequences: done in 0.0022831 secs using 212.7% CPU
+
+Create initial parsimony tree by phylogenetic likelihood library (PLL)... 0.171 seconds
+Generating 1000 samples for ultrafast bootstrap (seed: 558994)...
+
+NOTE: 20 MB RAM (0 GB) is required!
+Measuring multi-threading efficiency up to 8 CPU cores
+Increase to 10 rounds for branch lengths
+2 trees examined
+Threads: 1 / Time: 9.178 sec / Speedup: 1.000 / Efficiency: 100% / LogL: -233012
+Threads: 2 / Time: 5.688 sec / Speedup: 1.613 / Efficiency: 81% / LogL: -233012
+Threads: 3 / Time: 6.353 sec / Speedup: 1.445 / Efficiency: 48% / LogL: -233012
+Determining AUTO threadcount: done in 21.2266 secs using 135.2% CPU
+BEST NUMBER OF THREADS: 2
+
+Estimate model parameters (epsilon = 0.100)
+1. Initial log-likelihood: -237779.861
+Optimal log-likelihood: -232997.210
+Parameters optimization took 1 rounds (2.559 sec)
+Wrote distance file to... 
+Computing ML distances based on estimated model parameters...
+Calculating distance matrix: done in 0.634039 secs using 123.4% CPU
+Computing ML distances took 0.639666 sec (of wall-clock time) 0.787721 sec (of CPU time)
+WARNING: Some pairwise ML distances are too long (saturated)
+Setting up auxiliary I and S matrices: done in 0.0500569 secs using 175.9% CPU
+Constructing RapidNJ tree: done in 0.00483608 secs using 114.8% CPU
+Computing RapidNJ tree took 0.079473 sec (of wall-clock time) 0.121690 sec (of CPU time)
+Log-likelihood of RapidNJ tree: -232950.117
+--------------------------------------------------------------------
+|             INITIALIZING CANDIDATE TREE SET                      |
+--------------------------------------------------------------------
+Generating 98 parsimony trees... 17.727 second
+Computing log-likelihood of 98 initial trees ... 43.503 seconds
+Current best score: -232950.117
+
+Do NNI search on 20 best initial trees
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 1: -232939.411
+Iteration 10 / LogL: -232940.072 / Time: 0h:7m:38s
+Iteration 20 / LogL: -232956.880 / Time: 0h:12m:46s
+Finish initializing candidate tree set (20)
+Current best tree score: -232939.411 / CPU time: 735.402
+Number of iterations: 20
+--------------------------------------------------------------------
+|               OPTIMIZING CANDIDATE TREE SET                      |
+--------------------------------------------------------------------
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 21: -232938.060
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 22: -232935.444
+Iteration 30 / LogL: -232937.684 / Time: 0h:14m:58s (0h:47m:28s left)
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 31: -232935.405
+Estimate model parameters (epsilon = 0.100)
+BETTER TREE FOUND at iteration 32: -232934.343

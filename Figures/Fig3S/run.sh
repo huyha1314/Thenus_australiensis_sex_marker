@@ -1,1 +1,4 @@
-pixi run Rscript Fig3S.R --input align.txt --output Figure3S_Alignment.png
+#!/usr/bin/env bash
+set -e
+
+pixi run Rscript plot_3S.R --out Figure_3S_Masterpiece
